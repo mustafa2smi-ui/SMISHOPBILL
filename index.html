@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Khan Shop Pro - Smart Billing</title>
+    <style>
+        :root { --p: #27ae60; --s: #2ecc71; --d: #2c3e50; --err: #e74c3c; --border: 2px solid black; }
+        
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; height: 100vh; overflow: hidden; }
+
+        /* --- STICKY TOP SECTION --- */
+        .top-fixed-area {
+            position: sticky;
+            top: 0;
+            z-index: 2000;
+            background: #f4f7f6;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .header { 
+            background: var(--p); 
+            color: white; 
+            padding: 10px; 
+            text-align: center; 
+            border-bottom: var(--border); 
+            position: relative;
+        }
+        
+        .shop-name { font-size: 18px; font-weight: bold; }
+
+        .store-selector { 
+            display: flex; 
+            justify-content: center; 
+            gap: 8px; 
+            margin-top: 5px; 
+        }
+        
+        .store-btn { 
+            padding: 5px 12px; 
+            border-radius: 10px; 
+            border: 1px solid white; 
+            background: transparent; 
+            color: white; 
+            font-size: 11px;
+            cursor: pointer;
+        }
+        
+        .store-active { background: white; color: var(--p); font-weight: bold; }
+
+        .sticky-controls {
+            background: white;
+            padding: 10px 0;
+            border-bottom: var(--border);
+        }
+
+        .mode-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .cat-bar { 
+            display: flex; 
+            overflow-x: auto; 
+            gap: 10px; 
+            padding: 0 10px 5px 10px; 
+            scrollbar-width: none; 
+        }
+        
+        .cat-bar::-webkit-scrollbar { display: none; }
+
+        .cat-btn { 
+            background: #eee; 
+            padding: 8px 15px; 
+            border-radius: 15px; 
+            border: 1px solid black; 
+            white-space: nowrap; 
+            font-size: 12px; 
+            font-weight: bold;
+        }
+        
+        .cat-active { background: var(--d); color: white; }
+
+        /* --- CONTENT AREA --- */
+        #prodGrid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            padding: 15px 10px;
+            height: calc(100vh - 400px); /* Adjust based on footer height */
+            overflow-y: auto;
+        }
+
+        .p-card { 
+            background: white; 
+            padding: 12px; 
+            border-radius: 12px; 
+            border: 2px solid #e74c3c !important; 
+            box-shadow: none !important;
+            text-align: center; 
+        }
+        
+        .p-card:active { transform: translateY(2px); }
+
+        /* --- FIXED FOOTER BILL --- */
+        .footer-bill { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            background: white; 
+            border-top: var(--border);
+            border-radius: 20px 20px 0 0; 
+            z-index: 3000;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+        }
+
+        .bill-items { 
+            max-height: 120px; 
+            overflow-y: auto; 
+            margin: 8px; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            background: #fafafa; 
+        }
+
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 5px; border-bottom: 1px solid #eee; }
+        
+        .action-bar { 
+            display: flex; 
+            justify-content: space-around; 
+            padding: 8px; 
+            background: #fff;
+        }
+
+        .round-btn { 
+            width: 42px; 
+            height: 42px; 
+            border-radius: 50%; 
+            border: var(--border); 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 18px;
+            box-shadow: 0 3px 0px black;
+        }
+
+        .round-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        /* Full Screen Login Layout Fix */
+        #loginPage {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #f4f7f6;
+        }
+
+        .login-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginPage">
+    <header style="background: var(--p); color: white; padding: 20px 15px; text-align: center; border-bottom: 5px solid #1e8449; flex-shrink: 0;">
+        <h1 style="margin: 0; font-size: 20px; letter-spacing: 1px;">A R SON'S GENERAL STORE</h1>
+        <p style="margin: 5px 0 0; font-size: 12px; opacity: 0.9;">Digital Billing & Inventory System</p>
+    </header>
+
+    <main class="login-main">
+        <div style="background: white; padding: 15px; border-radius: 12px; border: var(--border); box-shadow: 0 4px 0 black; margin-bottom: 20px;">
+            <h3 style="margin-top: 0; color: var(--d); font-size: 16px;">Staff Login</h3>
+            <p style="font-size: 11px; color: #666; margin-bottom: 12px;">अपना रजिस्टर्ड ईमेल दर्ज करें।</p>
+          
+            <input type="email" id="emailInput" placeholder="example@gmail.com" 
+                   style="width: 100%; padding: 12px; border: var(--border); border-radius: 8px; box-sizing: border-box; font-size: 14px;">
+            
+            <button onclick="handleLogin()" id="loginBtn"
+                    style="width: 100%; background: var(--p); color: white; padding: 14px; border: var(--border); border-radius: 8px; margin-top: 12px; font-weight: bold; font-size: 15px;">
+                ENTER SYSTEM / CONTINUE
+            </button>
+            <div id="loginMsg" style="margin-top: 10px; font-size: 12px; text-align: center;"></div>
+        </div>
+
+        <section style="background: #fff8e1; border: 1px solid #ffe082; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px;">
+            <h4 style="margin: 0 0 8px 0; color: #f57c00;">⚠️ डेटा रिफ्रेश कैसे करें?</h4>
+            <ol style="padding-left: 18px; margin: 0; line-height: 1.6;">
+                <li>Chrome के <b>3 डॉट्स (⋮)</b> पर क्लिक करें।</li>
+                <li><b>Settings > Privacy and Security</b> में जाएँ।</li>
+                <li><b>Clear browsing data</b> पर क्लिक करें।</li>
+                <li>सिर्फ <b>"Cached images and files"</b> चुनें और Clear करें।</li>
+            </ol>
+        </section>
+
+        <section style="margin-bottom: 20px;">
+            <h4 style="border-left: 4px solid var(--p); padding-left: 10px; color: var(--d); font-size: 14px; margin-bottom: 8px;">System Info</h4>
+            <p style="font-size: 12px; color: #444; line-height: 1.4; margin: 0;">
+                यह सिस्टम आंतरिक प्रबंधन और तेज़ी से बिल प्रिंट करने के लिए बनाया गया है।
+            </p>
+        </section>
+    </main>
+
+    <footer style="background: var(--d); color: #bdc3c7; padding: 15px; text-align: center; font-size: 10px; flex-shrink: 0;">
+        <p style="margin: 0; color: white;">A R Son's Mailawada Internal System</p>
+        <p style="margin: 3px 0;">Version 1.0 | Dashboard</p>
+    </footer>
+</div>
+
+<div id="billingPage" style="display:none;">
+    <div class="top-fixed-area">
+        <div class="header">
+            <button onclick="goHome()" style="position: absolute; left: 10px; top: 12px; background:none; border:none; color:white; font-size:18px;">🏠</button>
+            <span class="shop-name">AR Son's & SMI STORE</span>
+            <div class="store-selector">
+                <button id="btnG" class="store-btn store-active" onclick="switchStore('Grocery')">GROCERY</button>
+                <button id="btnH" class="store-btn" onclick="switchStore('Hardware')">HARDWARE</button>
+            </div>
+        </div>
+        <div class="sticky-controls">
+            <div class="mode-switcher">
+                <button id="rtBtn" class="cat-btn cat-active" onclick="setMode('retail')">RETAIL</button>
+                <button id="wsBtn" class="cat-btn" onclick="setMode('ws')">WHOLESALE</button>
+            </div>
+            <div id="catBar" class="cat-bar"></div>
+        </div>
+    </div>
+
+    <div class="cust-info" style="padding:8px 10px;">
+        <input type="text" id="custName" placeholder="Customer Name (नाम लिखें)" style="width:100%; padding:10px; border:var(--border); border-radius:8px; box-sizing: border-box;">
+    </div>
+
+    <div id="prodGrid" class="grid"></div>
+
+    <div class="footer-bill">
+        <div id="billItems" class="bill-items"></div>
+        
+        <div class="action-bar">
+            <button class="round-btn" style="background:#3498db" onclick="printBill()">🖨️</button>
+            <button class="round-btn" style="background:#8e44ad" onclick="openCalculator()">🧮</button> 
+            <button class="round-btn" style="background:#f39c12" onclick="downloadCSV()">📊</button>
+            <button class="round-btn" style="background:#25D366" onclick="shareBill()">🔗</button>
+            <button class="round-btn" style="background:var(--err)" onclick="clearBill()">❌</button>
+        </div>
+
+        <div style="background: white; border-top: 2px solid var(--d);">
+            <div style="padding: 5px 10px; background: #f9f9f9; border-bottom: 1px solid #ddd; display: flex; gap: 8px;">
+                <input type="number" id="prevBal" placeholder="Pichla Baqi" value="0" 
+                       oninput="calculateFinal()" 
+                       style="flex: 1; padding: 6px; border: 1px solid #999; text-align: right; border-radius: 4px; font-size: 13px;">
+                
+                <input type="number" id="paidAmt" placeholder="Aaj Jama" value="0" 
+                       oninput="calculateFinal()" 
+                       style="flex: 1; padding: 6px; border: 1px solid #999; text-align: right; border-radius: 4px; color: green; font-weight: bold; font-size: 13px;">
+            </div>
+
+            <div style="padding: 8px 10px; background: var(--d); color: white;">
+                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px;">
+                    <span>Bill: <span id="grandTotal">₹0.00</span></span>
+                    <span id="shopLabel" style="text-transform: uppercase;">MODE</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 3px;">
+                    <b style="font-size: 13px;">NET BAL:</b>
+                    <b id="finalBalance" style="font-size: 16px; color: #2ecc71;">₹0.00</b>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
