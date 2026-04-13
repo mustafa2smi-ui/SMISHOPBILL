@@ -266,7 +266,26 @@ display: none;
            oninput="handleSearch()" 
            style="width: 100%; padding: 10px; border: var(--border); border-radius: 8px; box-sizing: border-box;">
 </div>
-    
+    <div style="position: fixed; bottom: 80px; right: 20px; z-index: 1001;">
+    <button onclick="openManualModal()" style="width: 50px; height: 50px; border-radius: 50%; background: var(--p); color: white; border: none; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;">
+        +
+    </button>
+</div>
+
+<div id="manualModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:15px; width:85%; max-width:350px;">
+        <h3 style="margin-top:0; color:var(--p);">Naya Item (Manual)</h3>
+        
+        <label style="font-size:12px;">Item ka Naam:</label>
+        <input type="text" id="manualName" placeholder="e.g. Loose Sugar" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:5px;">
+        
+        <div style="display:flex; gap:10px;">
+            <button onclick="addManualItem()" style="flex:1; padding:12px; background:var(--p); color:white; border:none; border-radius:8px; font-weight:bold;">ADD</button>
+            <button onclick="closeManualModal()" style="flex:1; padding:12px; background:#ccc; border:none; border-radius:8px;">CANCEL</button>
+        </div>
+    </div>
+</div>
+
 <div style="padding: 5px 10px; display: flex; gap: 5px;">
     <button onclick="startScanner()" style="flex: 1; padding: 10px; background: #3498db; color: white; border: var(--border); border-radius: 8px; font-weight: bold;">
         📷 SCAN BARCODE
@@ -841,6 +860,54 @@ async function printBill() {
         printerDevice = null;
     }
       }
+        // Modal kholne/band karne ke liye
+function openManualModal() {
+    document.getElementById('manualModal').style.display = 'flex';
+    document.getElementById('manualName').focus();
+}
+
+function closeManualModal() {
+    document.getElementById('manualModal').style.display = 'none';
+    document.getElementById('manualName').value = '';
+}
+
+// Sanitization Function (HTML tags hatane ke liye)
+function sanitizeInput(text) {
+    const temp = document.createElement('div');
+    temp.textContent = text;
+    return temp.innerHTML;
+}
+
+function addManualItem() {
+    let rawName = document.getElementById('manualName').value.trim();
+    
+    if (rawName === "") {
+        alert("Naam likhna zaroori hai!");
+        return;
+    }
+
+    // Security check: Naam ko sanitize karein
+    let cleanName = sanitizeInput(rawName);
+    
+    // Ek unique temporary code banayein (taaki cart mein mix na ho)
+    let tempCode = "MANUAL-" + Date.now();
+
+    // Cart mein entry (Rate aur Qty default 0)
+    cart[tempCode] = {
+        eng: cleanName,
+        hin: "Manual Entry",
+        retail: 0,
+        ws: 0,
+        qty: 0 // Default 0
+    };
+
+    updateBill(); // Bill screen refresh karein
+    closeManualModal(); // Modal band karein
+    
+    // Tip: Ab user bill screen par "Rate" aur "Qty" par click karke use badal sakta hai
+    alert(cleanName + " bill mein add ho gaya! Ab uska Rate aur Qty set kar lein.");
+}
+
 </script>
 </body>
 </html>
