@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>S M I Officially - Smart Billing</title>
    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏬</text></svg>">
-
+<script src="https://unpkg.com/html5-qrcode"></script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Khan Shop">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏬</text></svg>">
@@ -248,6 +248,17 @@
            oninput="handleSearch()" 
            style="width: 100%; padding: 10px; border: var(--border); border-radius: 8px; box-sizing: border-box;">
 </div>
+    
+<div style="padding: 5px 10px; display: flex; gap: 5px;">
+    <button onclick="startScanner()" style="flex: 1; padding: 10px; background: #3498db; color: white; border: var(--border); border-radius: 8px; font-weight: bold;">
+        📷 SCAN BARCODE
+    </button>
+    <button id="stopScanBtn" onclick="stopScanner()" style="display:none; flex: 0.5; padding: 10px; background: var(--err); color: white; border: var(--border); border-radius: 8px;">
+        STOP
+    </button>
+</div>
+
+<div id="reader" style="width: 100%; max-width: 400px; margin: auto; display: none; border: 2px solid var(--p);"></div>
     <div class="cust-info" style="padding:10px;">
         <input type="text" id="custName" placeholder="Customer Name (नाम लिखें)" style="width:90%; padding:10px; border:var(--border); border-radius:8px;">
     </div>
@@ -293,6 +304,59 @@
   let groceryInv = [], hardwareInv = [], inventory = [], cart = {};
   let mode = 'retail', selectedCat = 'All', currentStore = 'Grocery';
   let printerDevice = null;
+let html5QrCode;
+
+function startScanner() {
+    document.getElementById('reader').style.display = 'block';
+    document.getElementById('stopScanBtn').style.display = 'block';
+    
+    html5QrCode = new Html5Qrcode("reader");
+    
+    const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+    html5QrCode.start(
+        { facingMode: "environment" }, // Back camera use karega
+        config,
+        (decodedText) => {
+            // Jaise hi scan hoga:
+            handleBarcodeResult(decodedText);
+            // Scan ke baad halka vibration (optional)
+            if (navigator.vibrate) navigator.vibrate(100);
+        },
+        (errorMessage) => {
+            // Scanning error handle karne ke liye (silent rakhein)
+        }
+    ).catch((err) => {
+        alert("Camera permission dijiye ya refresh karein.");
+    });
+}
+
+function handleBarcodeResult(code) {
+    // 1. Search bar mein code likhein
+    document.getElementById('searchInput').value = code;
+    
+    // 2. Inventory mein dhoondein (Wahi code jo Sheet mein hai)
+    const item = inventory.find(i => i.code == code);
+    
+    if (item) {
+        // Agar item mil gaya toh cart mein add karein
+        addToCart(item.code);
+        // Scanning rok dein (agar ek bar mein ek hi item scan karna hai)
+        stopScanner();
+    } else {
+        alert("Item nahi mila! Code: " + code);
+        stopScanner();
+    }
+}
+
+function stopScanner() {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            document.getElementById('reader').style.display = 'none';
+            document.getElementById('stopScanBtn').style.display = 'none';
+        }).catch(err => console.log(err));
+    }
+}
 
   // 1. APP INITIALIZATION (Offline First)
   window.onload = () => {
