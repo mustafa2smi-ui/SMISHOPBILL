@@ -177,7 +177,51 @@ display: none;
     height: 250px !important;
     width: 250px !important;
 }
+.sticky-controls{
+  display:grid;
+  grid-template-columns:120px 1fr;
+  gap:10px;
+  align-items:center;
+  padding:8px;
+  background:white;
+  position:sticky;
+  top:0;
+  z-index:100;
+}
 
+.left-side{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.right-side{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.search-row{
+  display:flex;
+  gap:6px;
+}
+
+#searchInput{
+  flex:1;
+  padding:8px;
+  border:var(--border);
+  border-radius:6px;
+}
+
+.plus-btn{
+  width:35px;
+  height:35px;
+  border-radius:50%;
+  background:var(--p);
+  color:white;
+  border:none;
+  font-size:20px;
+}
     </style>
 </head>
 <body>
@@ -253,6 +297,7 @@ display: none;
                 <button id="btnH" class="store-btn" onclick="switchStore('Hardware')">HARDWARE</button>
             </div>
         </div>
+        <!--
         <div class="sticky-controls">
             <div class="mode-switcher">
                 <button id="rtBtn" class="cat-btn cat-active" onclick="setMode('retail')">RETAIL</button>
@@ -265,10 +310,36 @@ display: none;
     <input type="text" id="searchInput" placeholder="🔍 Item search karein..." 
            oninput="handleSearch()" 
            style="width: 80%; padding: 10px; border: var(--border); border-radius: 8px; box-sizing: border-box;">
-  <!-- <div style="position: fixed; bottom: 80px; right: 20px;">-->
+  <!-- <div style="position: fixed; bottom: 80px; right: 20px;">--
     <button onclick="openManualModal()" style="width: 30px; height: 30px; border-radius: 50%; background: var(--p); color: red; border: none; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;">
       +
     </button>
+</div>
+    -->
+        <div class="sticky-controls">
+
+  <div class="left-side">
+      <button id="rtBtn" class="cat-btn cat-active" onclick="setMode('retail')">
+        RETAIL
+      </button>
+
+      <button id="wsBtn" class="cat-btn" onclick="setMode('ws')">
+        WHOLESALE
+      </button>
+  </div>
+
+  <div class="right-side">
+      <div id="catBar" class="cat-bar"></div>
+
+      <div class="search-row">
+          <input type="text" id="searchInput"
+            placeholder="🔍 Item search karein..."
+            oninput="handleSearch()">
+
+          <button onclick="openManualModal()" class="plus-btn">+</button>
+      </div>
+  </div>
+
 </div>
 <div id="manualModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:20px; border-radius:15px; width:85%; max-width:350px;">
