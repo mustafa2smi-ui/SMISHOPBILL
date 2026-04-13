@@ -325,14 +325,15 @@ display: none;
   let mode = 'retail', selectedCat = 'All', currentStore = 'Grocery';
   let printerDevice = null;
 let html5QrCode;
-
+let isScanning = false; // Bahar define karein
+        
 function startScanner() {
     document.getElementById('reader').style.display = 'block';
     document.getElementById('stopScanBtn').style.display = 'block';
     
     html5QrCode = new Html5Qrcode("reader");
     
-    const config = { fps: 10, qrbox: { width: 200, height: 150 } };
+    const config = { fps: 10, qrbox: { width: 200, height: 150 }, aspectRatio:1.0};
 
     html5QrCode.start(
         { facingMode: "environment" }, // Back camera use karega
@@ -350,7 +351,7 @@ function startScanner() {
         alert("Camera permission dijiye ya refresh karein.");
     });
 }
-
+/*
 function handleBarcodeResult(code) {
     // 1. Search bar mein code likhein
     document.getElementById('searchInput').value = code;
@@ -367,6 +368,46 @@ function handleBarcodeResult(code) {
         alert("Item nahi mila! Code: " + code);
         stopScanner();
     }
+}
+*//*
+        function handleBarcodeResult(code) {
+    // 1. Inventory mein item dhoondein
+    const item = inventory.find(i => i.code == code);
+    
+    if (item) {
+        // 2. Item milte hi cart mein add karein
+        addToCart(item.code);
+        
+        // 3. Ek halka vibration taaki pata chale scan ho gaya (Mobile ke liye)
+        if (navigator.vibrate) navigator.vibrate(100);
+
+        // NOTE: Yahan 'stopScanner()' nahi likhna hai.
+        // Isse camera khula rahega aur aap dusra item scan kar sakenge.
+        
+        console.log("Scanned: " + item.eng);
+    } else {
+        // Agar item nahi mila toh beep ya alert (optional)
+        console.log("Code not found: " + code);
+    }
+}
+        */
+
+
+function handleBarcodeResult(code) {
+    if (isScanning) return; // Agar pehle se process ho raha hai toh ruko
+    
+    isScanning = true; // Lock lagao
+    const item = inventory.find(i => i.code == code);
+    
+    if (item) {
+        addToCart(item.code);
+        if (navigator.vibrate) navigator.vibrate(100);
+    }
+
+    // 1.5 second ka gap dein taaki ek hi item baar-baar scan na ho
+    setTimeout(() => {
+        isScanning = false; // Lock kholo
+    }, 1500); 
 }
 
 function stopScanner() {
