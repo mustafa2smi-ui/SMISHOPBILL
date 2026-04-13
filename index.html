@@ -300,32 +300,30 @@ display: none;
     </div>
 </div>
         -->
-            <div style="padding:5px 10px; display:flex; flex-direction:column; gap:6px;">
+            <div style="padding:5px 10px; display:flex; align-items:center; gap:6px;">
 
-    <!-- Row 1 -->
-    <div style="display:flex; align-items:center; gap:6px;">
-        <input type="text" id="searchInput"
-            placeholder="🔍"
-            oninput="handleSearch()"
-            style="width:60px; padding:6px; border:var(--border); border-radius:8px; font-size:14px;">
+    <!-- Search -->
+    <input type="text" id="searchInput"
+        placeholder="🔍"
+        oninput="handleSearch()"
+        style="width:60px; padding:6px; border:var(--border); border-radius:8px;">
 
-        <button onclick="openManualModal()"
-            style="width:30px; height:30px; border-radius:50%; background:var(--p); color:white; border:none; font-size:20px; font-weight:bold; display:flex; align-items:center; justify-content:center;">
-            +
-        </button>
-    </div>
+    <!-- Customer Name -->
+    <input type="text" id="custName"
+        placeholder="Customer Name"
+        style="flex:1; min-width:80px; padding:6px; border:var(--border); border-radius:8px;">
 
-    <!-- Row 2 -->
-    <div style="display:flex; align-items:center; gap:6px;">
-        <input type="text" id="custName"
-            placeholder="Customer Name (नाम लिखें)"
-            style="flex:1; padding:8px; border:var(--border); border-radius:8px;">
+    <!-- Plus -->
+    <button onclick="openManualModal()"
+        style="width:30px; height:30px; border-radius:50%; background:var(--p); color:white; border:none; font-size:18px; flex-shrink:0;">
+        +
+    </button>
 
-        <button onclick="startScanner()"
-            style="padding:8px 10px; background:#3498db; color:white; border:var(--border); border-radius:8px; font-size:13px; font-weight:bold;">
-            📷 Scan
-        </button>
-    </div>
+    <!-- Scan -->
+    <button onclick="startScanner()"
+        style="width:40px; height:30px; background:#3498db; color:white; border:var(--border); border-radius:6px; flex-shrink:0;">
+        📷
+    </button>
 
 </div>
 <!--
