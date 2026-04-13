@@ -243,7 +243,11 @@
             <div id="catBar" class="cat-bar"></div>
         </div>
     </div>
-
+<div style="padding: 5px 10px;">
+    <input type="text" id="searchInput" placeholder="🔍 Item search karein..." 
+           oninput="handleSearch()" 
+           style="width: 100%; padding: 10px; border: var(--border); border-radius: 8px; box-sizing: border-box;">
+</div>
     <div class="cust-info" style="padding:10px;">
         <input type="text" id="custName" placeholder="Customer Name (नाम लिखें)" style="width:90%; padding:10px; border:var(--border); border-radius:8px;">
     </div>
@@ -392,6 +396,34 @@
     renderCats();
     renderGrid();
   }
+        function handleSearch() {
+    const term = document.getElementById('searchInput').value.toLowerCase();
+    const grid = document.getElementById('prodGrid');
+    
+    // Pehle mode aur category ke hisab se filter karein
+    let filtered = selectedCat === 'All' ? inventory : inventory.filter(i => i.cat === selectedCat);
+    
+    // Phir Rate check karein (> 0)
+    filtered = filtered.filter(i => {
+        let rate = mode === 'retail' ? parseFloat(i.retail) : parseFloat(i.ws);
+        return rate > 0;
+    });
+
+    // Ab Search term ke hisab se filter karein (English ya Hindi dono mein search karega)
+    const searchResults = filtered.filter(i => 
+        i.eng.toLowerCase().includes(term) || 
+        i.hin.toLowerCase().includes(term)
+    );
+
+    // Grid ko naye results ke sath dikhayein
+    grid.innerHTML = searchResults.map(i => `
+      <div class="p-card" onclick="addToCart('${i.code}')">
+        <strong>${i.eng}</strong>
+        <small>(${i.hin})</small><br>
+        <span style="color:var(--p); font-weight:bold;">₹${mode === 'retail' ? i.retail : i.ws}</span>
+      </div>
+    `).join('');
+        }
         /*
       function renderCats() {
     // Sirf un items ko lein jinka rate current mode mein 0 se bada hai
