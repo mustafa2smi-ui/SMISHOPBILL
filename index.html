@@ -233,6 +233,30 @@ display: none;
 .cat-bar::-webkit-scrollbar{
   display:none; /* Chrome */
 }
+        .cat-bar{
+  display:flex;
+  flex-wrap:nowrap;        /* line break ना हो */
+  overflow-x:auto;         /* horizontal scroll */
+  overflow-y:hidden;
+  gap:6px;
+  width:100%;
+  max-width:100%;
+  white-space:nowrap;
+  scroll-behavior:smooth;
+}
+
+.cat-bar button{
+  flex:0 0 auto;           /* button shrink ना हो */
+  padding:6px 10px;
+  border:var(--border);
+  border-radius:6px;
+  background:white;
+  cursor:pointer;
+}
+
+.cat-bar::-webkit-scrollbar{
+  display:none;            /* scrollbar hide */
+}
     </style>
 </head>
 <body>
