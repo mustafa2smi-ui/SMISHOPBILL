@@ -160,6 +160,23 @@
         }
 
         .round-btn:active { transform: translateY(2px); box-shadow: none; }
+    #reader {
+    width: 250px !important; /* Frame ki chaudai kam ki */
+    height: 250px !important; /* Frame ki unchai kam ki */
+    margin: 10px auto; 
+    border-radius: 15px;
+    overflow: hidden;
+    border: 3px solid var(--p) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Isse camera ke andar ki video fit ho jayegi */
+#reader video {
+    object-fit: cover !important;
+    height: 250px !important;
+    width: 250px !important;
+}
+
     </style>
 </head>
 <body>
@@ -258,7 +275,9 @@
     </button>
 </div>
 
-<div id="reader" style="width: 100%; max-width: 400px; margin: auto; display: none; border: 2px solid var(--p);"></div>
+<!--<div id="reader" style="width: 100%; max-width: 400px; margin: auto; display: none; border: 2px solid var(--p);"></div>-->
+    <div id="reader"></div>
+    
     <div class="cust-info" style="padding:10px;">
         <input type="text" id="custName" placeholder="Customer Name (नाम लिखें)" style="width:90%; padding:10px; border:var(--border); border-radius:8px;">
     </div>
@@ -312,7 +331,7 @@ function startScanner() {
     
     html5QrCode = new Html5Qrcode("reader");
     
-    const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+    const config = { fps: 10, qrbox: { width: 200, height: 150 } aspect ratio 1.0, };
 
     html5QrCode.start(
         { facingMode: "environment" }, // Back camera use karega
