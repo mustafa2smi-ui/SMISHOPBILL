@@ -302,43 +302,31 @@ display: none;
         -->
             <div style="padding:5px 10px; display:flex; flex-direction:column; gap:6px;">
 
-    <!-- Row 1 : Search -->
-    <input type="text" id="searchInput"
-        placeholder="🔍 Item search..."
-        oninput="handleSearch()"
-        style="width:60%; padding:8px; border:var(--border); border-radius:8px; font-size:14px;">
-<button onclick="openManualModal()"
-            style="width:32px; height:32px; border-radius:50%; background:var(--p); color:white; border:none; font-size:20px; font-weight:bold; align-items:center; justify-content:center;">
+    <!-- Row 1 -->
+    <div style="display:flex; align-items:center; gap:6px;">
+        <input type="text" id="searchInput"
+            placeholder="🔍"
+            oninput="handleSearch()"
+            style="width:60px; padding:6px; border:var(--border); border-radius:8px; font-size:14px;">
+
+        <button onclick="openManualModal()"
+            style="width:30px; height:30px; border-radius:50%; background:var(--p); color:white; border:none; font-size:20px; font-weight:bold; display:flex; align-items:center; justify-content:center;">
             +
         </button>
+    </div>
+
     <!-- Row 2 -->
     <div style="display:flex; align-items:center; gap:6px;">
-
         <input type="text" id="custName"
             placeholder="Customer Name (नाम लिखें)"
             style="flex:1; padding:8px; border:var(--border); border-radius:8px;">
-
 
         <button onclick="startScanner()"
             style="padding:8px 10px; background:#3498db; color:white; border:var(--border); border-radius:8px; font-size:13px; font-weight:bold;">
             📷 Scan
         </button>
-
     </div>
 
-</div>
-<div id="manualModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:white; padding:20px; border-radius:15px; width:85%; max-width:350px;">
-        <h3 style="margin-top:0; color:var(--p);">Naya Item (Manual)</h3>
-        
-        <label style="font-size:12px;">Item ka Naam:</label>
-        <input type="text" id="manualName" placeholder="e.g. Loose Sugar" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:5px;">
-        
-        <div style="display:flex; gap:10px;">
-            <button onclick="addManualItem()" style="flex:1; padding:12px; background:var(--p); color:white; border:none; border-radius:8px; font-weight:bold;">ADD</button>
-            <button onclick="closeManualModal()" style="flex:1; padding:12px; background:#ccc; border:none; border-radius:8px;">CANCEL</button>
-        </div>
-    </div>
 </div>
 <!--
 <div style="padding: 5px 10px; display: flex; gap: 4px;width:50px;">
