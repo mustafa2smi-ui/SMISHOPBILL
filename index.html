@@ -265,9 +265,7 @@ display: none;
     <input type="text" id="searchInput" placeholder="🔍 Item search karein..." 
            oninput="handleSearch()" 
            style="width: 80%; padding: 10px; border: var(--border); border-radius: 8px; box-sizing: border-box;">
-</div>
   <!-- <div style="position: fixed; bottom: 80px; right: 20px;">-->
-    <div>
     <button onclick="openManualModal()" style="width: 30px; height: 30px; border-radius: 50%; background: var(--p); color: red; border: none; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;">
       +
     </button>
@@ -825,7 +823,7 @@ async function printBill() {
         esc += '\x1B\x61\x00Date: ' + new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + '\n';
         esc += "Cust: " + cName.substring(0, 22) + "\n--------------------------------\n";
         esc += "Item        Rate   Qty   Amount\n--------------------------------\n";
-
+/*
         for (let key in cart) {
             let item = cart[key];
             let r = (mode === 'retail' ? item.retail : item.ws) || 0;
@@ -834,7 +832,32 @@ async function printBill() {
             let n = (item.eng || "Item").substring(0, 10).padEnd(11, ' ');
             esc += n + r.toString().padEnd(6, ' ') + q.toString().padEnd(5, ' ') + s.toString().padStart(8, ' ') + "\n";
         }
+*/
+        for (let key in cart) {
+    let item = cart[key];
+    let r = (mode === 'retail' ? item.retail : item.ws) || 0;
+    let q = item.qty || 0;
+    let s = (r * q).toFixed(1);
 
+    // --- SAFETY FILTER START ---
+    // Agar item.eng hai toh use lo, warna "Item" likho
+    let rawName = item.eng || "Item";
+
+    // Regex use karke Hindi ya non-English characters ko hata rahe hain
+    // Taaki printer sirf safe text hi receive kare
+    let cleanName = rawName.replace(/[^\x00-\x7F]/g, "").trim();
+
+    // Agar saaf karne ke baad naam khali ho jaye (matlab pura Hindi tha), 
+    // toh use "Manual Item" ya Item Code ka naam de dein
+    if (cleanName === "") {
+        cleanName = "New Item"; 
+    }
+
+    let n = cleanName.substring(0, 10).padEnd(11, ' ');
+    // --- SAFETY FILTER END ---
+
+    esc += n + r.toString().padEnd(6, ' ') + q.toString().padEnd(5, ' ') + s.toString().padStart(8, ' ') + "\n";
+}
         esc += "--------------------------------\n";
         esc += "Bill Total:    Rs. " + curBill.padStart(10) + "\n";
         esc += "Prev. Balance: Rs. " + pBal.padStart(10) + "\n";
@@ -905,7 +928,7 @@ function addManualItem() {
     closeManualModal(); // Modal band karein
     
     // Tip: Ab user bill screen par "Rate" aur "Qty" par click karke use badal sakta hai
-    alert(cleanName + " bill mein add ho gaya! Ab uska Rate aur Qty set kar lein.");
+    /*alert(cleanName + " bill mein add ho gaya! Ab uska Rate aur Qty set kar lein.");*/
 }
 
 </script>
