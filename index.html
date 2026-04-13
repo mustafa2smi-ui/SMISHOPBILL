@@ -306,8 +306,11 @@ display: none;
     <input type="text" id="searchInput"
         placeholder="🔍 Item search..."
         oninput="handleSearch()"
-        style="width:100%; padding:8px; border:var(--border); border-radius:8px; font-size:14px;">
-
+        style="width:60%; padding:8px; border:var(--border); border-radius:8px; font-size:14px;">
+<button onclick="openManualModal()"
+            style="width:32px; height:32px; border-radius:50%; background:var(--p); color:white; border:none; font-size:20px; font-weight:bold; display:flex; align-items:center; justify-content:center;">
+            +
+        </button>
     <!-- Row 2 -->
     <div style="display:flex; align-items:center; gap:6px;">
 
@@ -315,10 +318,6 @@ display: none;
             placeholder="Customer Name (नाम लिखें)"
             style="flex:1; padding:8px; border:var(--border); border-radius:8px;">
 
-        <button onclick="openManualModal()"
-            style="width:32px; height:32px; border-radius:50%; background:var(--p); color:white; border:none; font-size:20px; font-weight:bold; display:flex; align-items:center; justify-content:center;">
-            +
-        </button>
 
         <button onclick="startScanner()"
             style="padding:8px 10px; background:#3498db; color:white; border:var(--border); border-radius:8px; font-size:13px; font-weight:bold;">
@@ -353,11 +352,11 @@ display: none;
 -- 
 <!--<div id="reader" style="width: 100%; max-width: 400px; margin: auto; display: none; border: 2px solid var(--p);"></div>-->
     <div id="reader"></div>
-    
+    <!--
     <div class="cust-info" style="padding:10px;">
         <input type="text" id="custName" placeholder="Customer Name (नाम लिखें)" style="width:90%; padding:10px; border:var(--border); border-radius:8px;">
     </div>
-
+-->
     <div id="prodGrid" class="grid"></div>
 
     <div class="footer-bill">
