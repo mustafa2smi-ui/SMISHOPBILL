@@ -281,7 +281,7 @@ display: none;
         <div id="catBar" class="cat-bar" style="flex: 1; overflow-x: auto; white-space: nowrap; padding-left: 5px;">
             </div>
     </div>
-
+<!--
     <div style="display: flex; align-items: center; padding: 5px 10px; gap: 8px;width:60px;">
         <input type="text" id="searchInput" placeholder="🔍 Item search..." 
                oninput="handleSearch()" 
@@ -298,6 +298,35 @@ display: none;
         STOP
     </button>
     </div>
+</div>
+        -->
+            <div style="padding:5px 10px; display:flex; flex-direction:column; gap:6px;">
+
+    <!-- Row 1 : Search -->
+    <input type="text" id="searchInput"
+        placeholder="🔍 Item search..."
+        oninput="handleSearch()"
+        style="width:100%; padding:8px; border:var(--border); border-radius:8px; font-size:14px;">
+
+    <!-- Row 2 -->
+    <div style="display:flex; align-items:center; gap:6px;">
+
+        <input type="text" id="custName"
+            placeholder="Customer Name (नाम लिखें)"
+            style="flex:1; padding:8px; border:var(--border); border-radius:8px;">
+
+        <button onclick="openManualModal()"
+            style="width:32px; height:32px; border-radius:50%; background:var(--p); color:white; border:none; font-size:20px; font-weight:bold; display:flex; align-items:center; justify-content:center;">
+            +
+        </button>
+
+        <button onclick="startScanner()"
+            style="padding:8px 10px; background:#3498db; color:white; border:var(--border); border-radius:8px; font-size:13px; font-weight:bold;">
+            📷 Scan
+        </button>
+
+    </div>
+
 </div>
 <div id="manualModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:white; padding:20px; border-radius:15px; width:85%; max-width:350px;">
