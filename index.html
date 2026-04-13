@@ -282,7 +282,7 @@ display: none;
             </div>
     </div>
 
-    <div style="display: flex; align-items: center; padding: 5px 10px; gap: 8px;width:70px;">
+    <div style="display: flex; align-items: center; padding: 5px 10px; gap: 8px;width:60px;">
         <input type="text" id="searchInput" placeholder="🔍 Item search..." 
                oninput="handleSearch()" 
                style="flex: 1;padding: 6px; border: var(--border); border-radius: 8px; font-size: 14px;">
@@ -291,6 +291,12 @@ display: none;
                 style="width: 30px; height: 30px; border-radius: 50%; background: var(--p); color: white; border: none; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
             +
         </button>
+        <button onclick="startScanner()" style="flex: 1; padding: 10px; background: #3498db; color: white; border: var(--border); border-radius: 8px; font-weight: bold;">
+        📷 SCAN BARCODE
+    </button>
+    <button id="stopScanBtn" onclick="stopScanner()" style="display:none; flex: 0.5; padding: 10px; background: var(--err); color: white; border: var(--border); border-radius: 8px;">
+        STOP
+    </button>
     </div>
 </div>
 <div id="manualModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
@@ -306,7 +312,7 @@ display: none;
         </div>
     </div>
 </div>
-
+<!--
 <div style="padding: 5px 10px; display: flex; gap: 4px;width:50px;">
     <button onclick="startScanner()" style="flex: 1; padding: 10px; background: #3498db; color: white; border: var(--border); border-radius: 8px; font-weight: bold;">
         📷 SCAN BARCODE
@@ -315,7 +321,7 @@ display: none;
         STOP
     </button>
 </div>
-
+-- 
 <!--<div id="reader" style="width: 100%; max-width: 400px; margin: auto; display: none; border: 2px solid var(--p);"></div>-->
     <div id="reader"></div>
     
