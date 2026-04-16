@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>S M I Officially - Smart Billing</title>
+   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏬</text></svg>">
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Khan Shop">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏬</text></svg>">
+    <style>
+        :root { --p: #27ae60; --s: #2ecc71; --d: #2c3e50; --err: #e74c3c; --border: 2px solid black; }
+        
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f4f7f6; padding-bottom: 300px; }
+
+        /* --- STICKY TOP SECTION --- */
+        .top-fixed-area {
+            position: sticky;
+            top: 0;
+            z-index: 2000;
+            background: #f4f7f6;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .header { 
+            background: var(--p); 
+            color: white; 
+            padding: 10px; 
+            text-align: center; 
+            border-bottom: var(--border); 
+        }
+        
+        .shop-name { font-size: 20px; font-weight: bold; }
+
+        .store-selector { 
+            display: flex; 
+            justify-content: center; 
+            gap: 8px; 
+            margin-top: 5px; 
+        }
+        
+        .store-btn { 
+            padding: 5px 12px; 
+            border-radius: 10px; 
+            border: 1px solid white; 
+            background: transparent; 
+            color: white; 
+            font-size: 11px;
+            cursor: pointer;
+        }
+        
+        .store-active { background: white; color: var(--p); font-weight: bold; }
+
+        /* Mode & Category Bar (Also Sticky) */
+        .sticky-controls {
+            background: white;
+            padding: 10px 0;
+            border-bottom: var(--border);
+        }
+
+        .mode-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .cat-bar { 
+            display: flex; 
+            overflow-x: auto; 
+            gap: 10px; 
+            padding: 0 10px 5px 10px; 
+            scrollbar-width: none; 
+        }
+        
+        .cat-bar::-webkit-scrollbar { display: none; }
+
+        .cat-btn { 
+            background: #eee; 
+            padding: 8px 15px; 
+            border-radius: 15px; 
+            border: 1px solid black; 
+            white-space: nowrap; 
+            font-size: 12px; 
+            font-weight: bold;
+        }
+        
+        .cat-active { background: var(--d); color: white; }
+
+        /* --- SCROLLABLE CONTENT --- */
+        .grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            padding: 15px 10px; 
+        }
+
+        .p-card { 
+            background: white; 
+            padding: 12px; 
+            border-radius: 12px; 
+            /*border: var(--border); */
+            border: 2px solid #e74c3c !important;; 
+            /*box-shadow: 0 4px 0px black; */
+            box-shadow: none !important;;
+            text-align: center; 
+        }
+        
+        .p-card:active { transform: translateY(2px); box-shadow: none; }
+
+        /* --- FIXED FOOTER BILL --- */
+        .footer-bill { 
+            position: fixed; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            background: white; 
+            border-top: var(--border);
+            border-radius: 25px 25px 0 0; 
+            z-index: 3000;
+        }
+
+        .bill-items { 
+            max-height: 140px; 
+            overflow-y: auto; 
+            margin: 10px; 
+            border: var(--border); 
+            border-radius: 10px; 
+            background: #fafafa; 
+        }
+.item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #ddd; }
+        .item-row:last-child { border-bottom: none; }
+        
+        .total-strip { 
+            background: var(--d); 
+            color: white; 
+            padding: 12px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            font-weight: bold; 
+        }
+
+        .action-bar { 
+            display: flex; 
+            justify-content: space-around; 
+            padding: 10px; 
+        }
+
+        .round-btn { 
+            width: 45px; 
+            height: 45px; 
+            border-radius: 50%; 
+            border: var(--border); 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 3px 0px black;
+        }
+
+        .round-btn:active { transform: translateY(2px); box-shadow: none; }
+    #reader {
+    width: 250px !important; /* Frame ki chaudai kam ki */
+    height: 250px !important; /* Frame ki unchai kam ki */
+    margin: 10px auto; 
+    border-radius: 15px;
+    overflow: hidden;
+    border: 3px solid var(--p) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+display: none; 
+    }
+
+/* Isse camera ke andar ki video fit ho jayegi */
+#reader video {
+    object-fit: cover !important;
+    height: 250px !important;
+    width: 250px !important;
+}
+
+    </style>
+</head>
+<body>
+  <div id="loginPage" style="min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;">
+    <header style="background: var(--p); color: white; padding: 25px 15px; text-align: center; border-bottom: 5px solid #1e8449;">
+        <h1 style="margin: 0; font-size: 22px; letter-spacing: 1px;">A R SON'S GENERAL STORE</h1>
+        <p style="margin: 5px 0 0; font-size: 14px; opacity: 0.9;">Digital Billing & Inventory System</p>
+        <p style="margin: 2px 0 0; font-size: 11px; font-style: italic;">Retail & Wholesale Product Price Panel</p>
+    </header>
+
+    <main style="flex: 1; padding: 20px;">
+        <div style="background: white; padding: 20px; border-radius: 15px; border: var(--border); box-shadow: 0 4px 0 black; margin-bottom: 25px;">
+            <h3 style="margin-top: 0; color: var(--d);">स्टाफ लॉगिन</h3>
+<p style="font-size: 12px; color: #666; margin-bottom: 15px;">
+कृपया अपना रजिस्टर्ड ईमेल दर्ज करें।<br>
+<b>नोट:</b> एडमिन द्वारा सत्यापन का इंतज़ार करें।
+</p>
+            <input type="email" id="emailInput" placeholder="example@gmail.com" 
+                   style="width: 100%; padding: 12px; border: var(--border); border-radius: 8px; box-sizing: border-box;">
+            
+            <button onclick="handleLogin()" id="loginBtn"
+                    style="width: 100%; background: var(--p); color: white; padding: 15px; border: var(--border); border-radius: 8px; margin-top: 15px; font-weight: bold; font-size: 16px;">
+                ENTER SYSTEM / CONTINUE
+            </button>
+            <div id="loginMsg" style="margin-top: 10px; font-size: 13px;"></div>
+        </div>
+
+        <section style="margin-bottom: 25px;">
+            <h4 style="border-left: 4px solid var(--p); padding-left: 10px; color: var(--d);">सिस्टम का उद्देश्य</h4>
+<p style="font-size: 13px; color: #444; line-height: 1.5;">
+यह सिस्टम A R Son's General Store के आंतरिक प्रबंधन के लिए बनाया गया है। इसके माध्यम से रिटेल और होलसेल रेट की बिलिंग तथा इन्वेंटरी ट्रैकिंग आसानी से की जा सकती है।
+</p>
+        </section>
+
+        <section style="background: #fff3cd; padding: 15px; border-radius: 10px; border: 1px solid #ffeeba;">
+            <h4 style="margin-top: 0; color: #856404;">⚠️ स्टाफ के लिए निर्देश</h4>
+<ul style="font-size: 12px; color: #533f03; padding-left: 20px; line-height: 1.8;">
+    <li>केवल अपने आधिकारिक Gmail अकाउंट से ही लॉगिन करें।</li>
+    <li>फर्जी ईमेल दर्ज न करें; कीमत संपादन के लिए Google Sheet एक्सेस लिंक किया गया है।</li>
+    <li>किसी भी बिल को अंतिम रूप देने से पहले <b>कीमत ध्यान से जांच लें</b>।</li>
+    <li>अपना लॉगिन एक्सेस किसी के साथ भी साझा न करें।</li>
+</ul>
+        </section>
+        <div style="background: #fff8e1; border: 1px solid #ffe082; padding: 15px; border-radius: 8px; margin: 10px; font-size: 14px; line-height: 1.5;">
+    <h3 style="margin-top: 0; color: #f57c00;">⚠️ डेटा रिफ्रेश कैसे करें?</h3>
+<p>यदि लॉगिन या डेटा लोड होने में कोई परेशानी आए, तो ये स्टेप्स फॉलो करें:</p>
+<ol style="padding-left: 20px;">
+    <li>Chrome Browser के ऊपर बने <b>3 डॉट्स (⋮)</b> पर क्लिक करें।</li>
+    <li><b>Settings</b> में जाएँ और <b>Privacy and Security</b> पर क्लिक करें।</li>
+    <li><b>Clear browsing data</b> पर क्लिक करें।</li>
+    <li>सिर्फ <b>"Cached images and files"</b> को सेलेक्ट करें और <b>Clear Data</b> दबा दें।</li>
+    <li>ऐप को दोबारा रिफ्रेश करें।</li>
+</ol>
+</div>
+
+    </main>
+
+    <footer style="background: var(--d); color: #bdc3c7; padding: 20px; text-align: center; font-size: 11px;">
+        <p style="margin: 0; color: white;">A R Son's General Store Mailawada Internal System</p>
+        <p style="margin: 5px 0;">©️ 2026 | Version 1.0 | Dashboard</p>
+        <p style="margin: 5px 0;">Contact Admin: <a href="mailto:mustafawebtool@gmail.com" style="color: var(--s); text-decoration: none;">mustafawebtool@gmail.com</a></p>
+    </footer>
+</div>
+<div id="billingPage" style="display:none;">
+    <div class="top-fixed-area">
+        <div class="header">
+            <span class="shop-name">A R Son's & SMI STORE</span>
+          <div style="position: absolute; left: 10px; top: 15px;">
+    <button onclick="goHome()" style="background:none; border:none; color:white; font-size:20px;">🏠</button>
+</div>
+            <div class="store-selector">
+                <button id="btnG" class="store-btn store-active" onclick="switchStore('Grocery')">GROCERY</button>
+                <button id="btnH" class="store-btn" onclick="switchStore('Hardware')">HARDWARE</button>
+            </div>
+        </div>
+        <!--
+        <div class="sticky-controls">
+            <div class="mode-switcher">
+                <button id="rtBtn" class="cat-btn cat-active" onclick="setMode('retail')">RETAIL</button>
+                <button id="wsBtn" class="cat-btn" onclick="setMode('ws')">WHOLESALE</button>
+            </div>
+            <div id="catBar" class="cat-bar"></div>
+        </div>
+    </div>
+<div style="padding: 5px 10px;">
+    <input type="text" id="searchInput" placeholder="🔍 Item search karein..." 
+           oninput="handleSearch()" 
+           style="width: 80%; padding: 10px; border: var(--border); border-radius: 8px; box-sizing: border-box;">
+  <!-- <div style="position: fixed; bottom: 80px; right: 20px;">--
+    <button onclick="openManualModal()" style="width: 30px; height: 30px; border-radius: 50%; background: var(--p); color: red; border: none; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;">
+      +
+    </button>
+</div>
+    -->
+        <div class="sticky-controls">
+    <div style="display: flex; align-items: center; border-bottom: 1px solid #eee;">
+        <div class="mode-switcher" style="display: flex; flex-direction: column; border-right: 1px solid #ddd; padding-right: 5px;">
+            <button id="rtBtn" class="cat-btn cat-active" onclick="setMode('retail')" style="font-size: 10px; padding: 5px;">RETAIL</button>
+            <button id="wsBtn" class="cat-btn" onclick="setMode('ws')" style="font-size: 10px; padding: 5px; margin-top: 2px;">WHOLESALE</button>
+        </div>
+        <div id="catBar" class="cat-bar" style="flex: 1; overflow-x: auto; white-space: nowrap; padding-left: 5px;">
+            </div>
+    </div>
+<!--
+    <div style="display: flex; align-items: center; padding: 5px 10px; gap: 8px;width:60px;">
+        <input type="text" id="searchInput" placeholder="🔍 Item search..." 
+               oninput="handleSearch()" 
+               style="flex: 1;padding: 6px; border: var(--border); border-radius: 8px; font-size: 14px;">
+        
+        <button onclick="openManualModal()" 
+                style="width: 30px; height: 30px; border-radius: 50%; background: var(--p); color: white; border: none; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+            +
+        </button>
+        <button onclick="startScanner()" style="flex: 1; padding: 10px; background: #3498db; color: white; border: var(--border); border-radius: 8px; font-weight: bold;">
+        📷 SCAN BARCODE
+    </button>
+    <button id="stopScanBtn" onclick="stopScanner()" style="display:none; flex: 0.5; padding: 10px; background: var(--err); color: white; border: var(--border); border-radius: 8px;">
+        STOP
+    </button>
+    </div>
+</div>
+        -->
+            <div style="padding:5px 10px; display:flex; align-items:center; gap:6px;">
+
+    <!-- Search -->
+    <input type="text" id="searchInput"
+        placeholder="🔍"
+        oninput="handleSearch()"
+        style="width:60px; padding:6px; border:var(--border); border-radius:8px;">
+
+    <!-- Customer Name -->
+    <input type="text" id="custName"
+        placeholder="Customer Name"
+        style="flex:1; min-width:80px; padding:6px; border:var(--border); border-radius:8px;">
+
+    <!-- Plus -->
+                <div>
+    <button onclick="openManualModal()"
+        style="width:30px; height:30px; border-radius:50%; background:var(--p); color:white; border:none; font-size:18px; flex-shrink:0;">
+        +
+    </button>
+                </div>
+    <!-- Scan -->
+    <button onclick="startScanner()"
+        style="width:40px; height:30px; background:#3498db; color:white; border:var(--border); border-radius:6px; flex-shrink:0;">
+        📷
+    </button>
+<button id="stopScanBtn" onclick="stopScanner()" style="display:none; flex: 0.5; padding: 10px; background: var(--err); color: white; border: var(--border); border-radius: 8px;">
+        STOP
+    </button>
+</div>
+<!--
+<div style="padding: 5px 10px; display: flex; gap: 4px;width:50px;">
+    <button onclick="startScanner()" style="flex: 1; padding: 10px; background: #3498db; color: white; border: var(--border); border-radius: 8px; font-weight: bold;">
+        📷 SCAN BARCODE
+    </button>
+    <button id="stopScanBtn" onclick="stopScanner()" style="display:none; flex: 0.5; padding: 10px; background: var(--err); color: white; border: var(--border); border-radius: 8px;">
+        STOP
+    </button>
+</div>
+-->
+            
+
+<div id="manualModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:20px; border-radius:15px; width:85%; max-width:350px;">
+        <h3 style="margin-top:0; color:var(--p);">Naya Item (Manual)</h3>
+        
+        <label style="font-size:12px;">Item ka Naam:</label>
+        <input type="text" id="manualName" placeholder="e.g. Loose Sugar" style="width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:5px;">
+        
+        <div style="display:flex; gap:10px;">
+            <button onclick="addManualItem()" style="flex:1; padding:12px; background:var(--p); color:white; border:none; border-radius:8px; font-weight:bold;">ADD</button>
+            <button onclick="closeManualModal()" style="flex:1; padding:12px; background:#ccc; border:none; border-radius:8px;">CANCEL</button>
+        </div>
+    </div>
+</div>
+
+<div id="reader" style="width: 100%; max-width: 400px; margin: auto; display: none; border: 2px solid var(--p);"></div>
+    <div id="reader"></div>
+    <!--
+    <div class="cust-info" style="padding:10px;">
+        <input type="text" id="custName" placeholder="Customer Name (नाम लिखें)" style="width:90%; padding:10px; border:var(--border); border-radius:8px;">
+    </div>
+-->
+    <div id="prodGrid" class="grid"></div>
+<div id="draftSection" style="margin-top:20px; padding:10px; background:#f1f1f1; border-radius:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h4 style="margin:0;">Saved Bills (Drafts)</h4>
+        <button onclick="clearAllDrafts()" style="background:red; color:white; border:none; padding:4px 8px; border-radius:4px; font-size:11px;">CLEAR ALL</button>
+    </div>
+    
+    <div id="draftList" style="max-height:200px; overflow-y:auto;">
+        </div>
+</div>
+
+    <div class="footer-bill">
+        <div id="billItems" class="bill-items"></div>
+        
+        <div class="action-bar">
+            <button class="round-btn" style="background:#3498db" onclick="printBill()">🖨️</button>
+            <button class="round-btn" style="background:#f39c12" onclick="downloadCSV()">📊</button>
+            <button class="round-btn" style="background:#25D366" onclick="shareBill()">🔗</button>
+            <button class="round-btn" style="background:var(--err)" onclick="clearBill()">❌</button>
+          <button class="round-btn" style="background:#25D366" onclick="undo()">↩️</button>
+            <button class="round-btn" style="background:var(--err)" onclick="saveHistory()">Save</button>
+          <button class="round-btn" style="background:#25D366" onclick="downloadBillPDF()">Pdf</button>
+           
+          
+          
+        </div>
+        <div style="background: white; border-top: 2px solid var(--d);">
+    <div style="padding: 5px 10px; background: #f9f9f9; border-bottom: 1px solid #ddd; display: flex; gap: 8px;">
+        <input type="number" id="prevBal" placeholder="Pichla Baqi" value="0" 
+               onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'"
+               oninput="calculateFinal()" 
+               style="flex: 1; padding: 6px; border: 1px solid #999; text-align: right; border-radius: 4px; font-size: 13px;">
+        
+        <input type="number" id="paidAmt" placeholder="Aaj Jama" value="0" 
+               onfocus="if(this.value=='0')this.value=''" onblur="if(this.value=='')this.value='0'"
+               oninput="calculateFinal()" 
+               style="flex: 1; padding: 6px; border: 1px solid #999; text-align: right; border-radius: 4px; color: green; font-weight: bold; font-size: 13px;">
+    </div>
+
+    <div style="padding: 8px 10px; background: var(--d); color: white;">
+        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px;">
+            <span>Bill: <span id="grandTotal">₹0.00</span></span>
+            <span id="shopLabel" style="text-transform: uppercase;">MODE</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 3px;">
+            <b style="font-size: 13px;">NET BAL:</b>
+            <b id="finalBalance" style="font-size: 16px; color: #2ecc71;">₹0.00</b>
+        </div>
+    </div>
+</div>
+    <script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwEf_fDwLfESUew5Sr8iBNF_cdcTb_Boz6ud9LqvHEU9VHN0RtwfimwmMPCUSOEN3uMhQ/exec";
+  
+  let groceryInv = [], hardwareInv = [], inventory = [], cart = {};
+  let mode = 'retail', selectedCat = 'All', currentStore = 'Grocery';
+  let printerDevice = null;
+let html5QrCode;
+let isScanning = false; // Bahar define karein
+  let cartHistory = []; // Piche jane ke liye record
+
+function saveHistory() {
+    // Cart ki copy history mein save karein (Max 10 steps)
+    cartHistory.push(JSON.stringify(cart));
+    if (cartHistory.length > 10) cartHistory.shift();
+}
+
+function undo() {
+    if (cartHistory.length > 0) {
+        // Pichla state wapas layein
+        cart = JSON.parse(cartHistory.pop());
+        updateBill();
+    } else {
+        alert("Piche jane ke liye koi record nahi hai!");
+    }
+}
+
+// Yaad rakhein: Jahan bhi aap cart mein badlav karte hain 
+// (jaise addToCart ya deleteItem), wahan updateBill() se pehle saveHistory() call karein.
+      
+function startScanner() {
+    document.getElementById('reader').style.display = 'block';
+    document.getElementById('stopScanBtn').style.display = 'block';
+    
+    html5QrCode = new Html5Qrcode("reader");
+    
+    const config = { fps: 10, qrbox: { width: 200, height: 150 }, aspectRatio:1.0};
+
+    html5QrCode.start(
+        { facingMode: "environment" }, // Back camera use karega
+        config,
+        (decodedText) => {
+            // Jaise hi scan hoga:
+            handleBarcodeResult(decodedText);
+            // Scan ke baad halka vibration (optional)
+            if (navigator.vibrate) navigator.vibrate(100);
+        },
+        (errorMessage) => {
+            // Scanning error handle karne ke liye (silent rakhein)
+        }
+    ).catch((err) => {
+        alert("Camera permission dijiye ya refresh karein.");
+    });
+}
+/*
+function handleBarcodeResult(code) {
+    // 1. Search bar mein code likhein
+    document.getElementById('searchInput').value = code;
+    
+    // 2. Inventory mein dhoondein (Wahi code jo Sheet mein hai)
+    const item = inventory.find(i => i.code == code);
+    
+    if (item) {
+        // Agar item mil gaya toh cart mein add karein
+        addToCart(item.code);
+        // Scanning rok dein (agar ek bar mein ek hi item scan karna hai)
+        stopScanner();
+    } else {
+        alert("Item nahi mila! Code: " + code);
+        stopScanner();
+    }
+}
+*//*
+        function handleBarcodeResult(code) {
+    // 1. Inventory mein item dhoondein
+    const item = inventory.find(i => i.code == code);
+    
+    if (item) {
+        // 2. Item milte hi cart mein add karein
+        addToCart(item.code);
+        
+        // 3. Ek halka vibration taaki pata chale scan ho gaya (Mobile ke liye)
+        if (navigator.vibrate) navigator.vibrate(100);
+
+        // NOTE: Yahan 'stopScanner()' nahi likhna hai.
+        // Isse camera khula rahega aur aap dusra item scan kar sakenge.
+        
+        console.log("Scanned: " + item.eng);
+    } else {
+        // Agar item nahi mila toh beep ya alert (optional)
+        console.log("Code not found: " + code);
+    }
+}
+        */
+
+
+function handleBarcodeResult(code) {
+    if (isScanning) return; // Agar pehle se process ho raha hai toh ruko
+    
+    isScanning = true; // Lock lagao
+    const item = inventory.find(i => i.code == code);
+    
+    if (item) {
+        addToCart(item.code);
+        if (navigator.vibrate) navigator.vibrate(100);
+    }
+
+    // 1.5 second ka gap dein taaki ek hi item baar-baar scan na ho
+    setTimeout(() => {
+        isScanning = false; // Lock kholo
+    }, 1500); 
+}
+
+function stopScanner() {
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+            document.getElementById('reader').style.display = 'none';
+            document.getElementById('stopScanBtn').style.display = 'none';
+        }).catch(err => console.log(err));
+    }
+}
+
+  // 1. APP INITIALIZATION (Offline First)
+  window.onload = () => {
+    const savedEmail = localStorage.getItem('khan_shop_email');
+    const savedStatus = localStorage.getItem('khan_shop_status');
+    const localG = localStorage.getItem('offline_grocery');
+    const localH = localStorage.getItem('offline_hardware');
+    
+    if(savedEmail && savedStatus === "allow" && localG && localH) {
+        groceryInv = JSON.parse(localG);
+        hardwareInv = JSON.parse(localH);
+        
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('billingPage').style.display = 'block';
+        document.getElementById('emailInput').value = savedEmail;
+        
+        switchStore('Grocery'); 
+        handleLogin(true); // Silent sync in background
+    }
+  };
+        function goHome() {
+    document.getElementById('billingPage').style.display = 'none';
+    document.getElementById('loginPage').style.display = 'block';
+    document.getElementById('loginMsg').innerText = "Logged in as: " + localStorage.getItem('khan_shop_email');
+}
+      async function handleLogin(isSilent = false) {
+    const emailInput = document.getElementById('emailInput');
+    const email = emailInput.value.toLowerCase().trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if(!emailRegex.test(email)) {
+        document.getElementById('loginMsg').innerHTML = "<span style='color:red'>Sahi Email format likhein!</span>";
+        return;
+    }
+
+    // --- SMART BYPASS (FAST ENTRY) ---
+    // Agar user wahi hai aur status pehle se "allow" hai, toh syncing skip karo
+    const savedEmail = localStorage.getItem('khan_shop_email');
+    const savedStatus = localStorage.getItem('khan_shop_status');
+
+    if (savedEmail === email && savedStatus === "allow" && !isSilent) {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('billingPage').style.display = 'block';
+        // Inventory load karna zaroori hai local se
+        groceryInv = JSON.parse(localStorage.getItem('offline_grocery')) || [];
+        hardwareInv = JSON.parse(localStorage.getItem('offline_hardware')) || [];
+        switchStore(currentStore || 'Grocery');
+        return; // Function yahan khatam, niche wala fetch nahi chalega
+    }
+    // ---------------------------------
+
+    if(!isSilent) document.getElementById('loginMsg').innerText = "Checking Access & Syncing...";
+    
+    const finalUrl = `${SCRIPT_URL}?email=${encodeURIComponent(email)}`;
+    
+    try {
+      const response = await fetch(finalUrl);
+      const data = await response.json();
+      let currentStatus = data.status.toLowerCase().trim();
+
+      if(currentStatus === "allow") {
+        localStorage.setItem('khan_shop_email', email);
+        localStorage.setItem('khan_shop_status', "allow");
+        localStorage.setItem('offline_grocery', JSON.stringify(data.grocery));
+        localStorage.setItem('offline_hardware', JSON.stringify(data.hardware));
+
+        groceryInv = data.grocery;
+        hardwareInv = data.hardware;
+        
+        if(!isSilent) {
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('billingPage').style.display = 'block';
+          switchStore('Grocery');
+        } else {
+          switchStore(currentStore);
+        }
+      } else {
+        localStorage.removeItem('khan_shop_status');
+        if(!isSilent) {
+            document.getElementById('loginMsg').innerHTML = 
+            `<span style="color:orange; font-weight:bold;">Status: ${data.status}</span><br>
+             Admin se 'Allow' karwayein aur Refresh karein.`;
+        }
+      }
+    } catch(e) {
+      console.log("Offline Mode Active.");
+      if(!isSilent) document.getElementById('loginMsg').innerHTML = `<span style="color:red">Net Connection Error!</span>`;
+    }
+}
+
+  // 3. STORE & GRID LOGIC
+  function switchStore(store) {
+    currentStore = store;
+    inventory = (store === 'Grocery') ? groceryInv : hardwareInv;
+    
+    document.getElementById('btnG').classList.toggle('store-active', store === 'Grocery');
+    document.getElementById('btnH').classList.toggle('store-active', store === 'Hardware');
+    document.getElementById('shopLabel').innerText = store.toUpperCase();
+    
+    selectedCat = 'All';
+    renderCats();
+    renderGrid();
+  }
+        function handleSearch() {
+    const term = document.getElementById('searchInput').value.toLowerCase();
+    const grid = document.getElementById('prodGrid');
+    
+    // Pehle mode aur category ke hisab se filter karein
+    let filtered = selectedCat === 'All' ? inventory : inventory.filter(i => i.cat === selectedCat);
+    
+    // Phir Rate check karein (> 0)
+    filtered = filtered.filter(i => {
+        let rate = mode === 'retail' ? parseFloat(i.retail) : parseFloat(i.ws);
+        return rate > 0;
+    });
+
+    // Ab Search term ke hisab se filter karein (English ya Hindi dono mein search karega)
+    const searchResults = filtered.filter(i => 
+        i.eng.toLowerCase().includes(term) || 
+        i.hin.toLowerCase().includes(term)
+    );
+
+    // Grid ko naye results ke sath dikhayein
+    grid.innerHTML = searchResults.map(i => `
+      <div class="p-card" onclick="addToCart('${i.code}')">
+        <strong>${i.eng}</strong>
+        <small>(${i.hin})</small><br>
+        <span style="color:var(--p); font-weight:bold;">₹${mode === 'retail' ? i.retail : i.ws}</span>
+      </div>
+    `).join('');
+        }
+        /*
+      function renderCats() {
+    // Sirf un items ko lein jinka rate current mode mein 0 se bada hai
+    const activeItems = inventory.filter(i => {
+        let rate = mode === 'retail' ? parseFloat(i.retail) : parseFloat(i.ws);
+        return rate > 0;
+    });
+
+    // Ab sirf unhi active items ki categories nikalen
+    const cats = ['All', ...new Set(activeItems.map(i => i.cat))];
+    
+    document.getElementById('catBar').innerHTML = cats.map(c => `
+      <div class="cat-btn ${selectedCat === c ? 'cat-active' : ''}" onclick="filterCat('${c}')">${c}</div>
+    `).join('');
+}
+        */
+        function renderCats() {
+    const activeItems = inventory.filter(i => (parseFloat(i.retail) || 0) > 0 || (parseFloat(i.ws) || 0) > 0);
+    const cats = ['All', ...new Set(activeItems.map(i => i.cat))];
+    
+    const catBar = document.getElementById('catBar');
+    catBar.innerHTML = ""; 
+
+    cats.forEach(c => {
+        const btn = document.createElement('div');
+        btn.className = `cat-btn ${selectedCat === c ? 'cat-active' : ''}`;
+        btn.innerText = c;
+        
+        // Mobile touch ke liye ye sabse solid tarika hai
+        btn.addEventListener('click', function() {
+            filterCat(c);
+        });
+        
+        catBar.appendChild(btn);
+    });
+}
+        function filterCat(c) { selectedCat = c; renderCats(); renderGrid(); }
+
+      function renderGrid() {
+    const grid = document.getElementById('prodGrid');
+    
+    // Pehle Category ke hisab se filter karein
+    let filtered = selectedCat === 'All' ? inventory : inventory.filter(i => i.cat === selectedCat);
+    
+    // Ab Rate ke hisab se filter karein (Sirf > 0 wale dikhao)
+    filtered = filtered.filter(i => {
+        let rate = mode === 'retail' ? parseFloat(i.retail) : parseFloat(i.ws);
+        return rate > 0; // Agar rate 0 ya khali hai toh display nahi hoga
+    });
+
+    grid.innerHTML = filtered.map(i => `
+      <div class="p-card" onclick="addToCart('${i.code}')">
+        <strong>${i.eng}</strong>
+        <small>(${i.hin})</small><br>
+        <span style="color:var(--p); font-weight:bold;">₹${mode === 'retail' ? i.retail : i.ws}</span>
+      </div>
+    `).join('');
+}
+
+  function setMode(m) {
+    mode = m;
+    document.getElementById('rtBtn').classList.toggle('cat-active', m==='retail');
+    document.getElementById('wsBtn').classList.toggle('cat-active', m==='ws');
+    renderGrid(); 
+    updateBill();
+  }
+
+  // 4. CART & BILLING LOGIC
+  function addToCart(code) {
+    if(cart[code]) cart[code].qty++;
+    else {
+      const p = inventory.find(i => i.code == code);
+      cart[code] = { ...p, qty: 1 };
+    }
+    updateBill();
+    const box = document.getElementById('billItems');
+    setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
+  }
+
+        
+  function updateQty(code, d) {
+    if(cart[code]) {
+      cart[code].qty += d;
+      if(cart[code].qty <= 0) delete cart[code];
+      updateBill();
+    }
+  }
+
+  function clearBill() {
+    if(confirm("Clear current bill?")) { cart = {}; document.getElementById('custName').value = ""; updateBill(); }
+  }
+      // 1. Manual Qty for Half (.5) ya koi bhi number
+function editQty(code) {
+    let newQty = prompt("Enter Quantity (e.g. 0.5 or 1.5):", cart[code].qty);
+    if (newQty !== null && !isNaN(newQty) && newQty > 0) {
+        cart[code].qty = parseFloat(newQty);
+        updateBill();
+    } else if (newQty == 0) {
+        delete cart[code];
+        updateBill();
+    }
+}
+      function calculateFinal() {
+    let currentTotal = 0;
+    for(let key in cart) {
+        // Ab hum seedha cart[key] ka rate uthayenge jo edit ho sakta hai
+        let r = mode === 'retail' ? parseFloat(cart[key].retail) : parseFloat(cart[key].ws);
+        currentTotal += cart[key].qty * r;
+    }
+    // ... baaki pichla code waisa hi rahega
+    const prev = parseFloat(document.getElementById('prevBal').value) || 0;
+    const paid = parseFloat(document.getElementById('paidAmt').value) || 0;
+    const final = (prev + currentTotal) - paid;
+    document.getElementById('finalBalance').innerText = "₹" + final.toFixed(2);
+}
+
+function updateBill() {
+    const container = document.getElementById('billItems');
+    let total = 0;
+    container.innerHTML = "";
+    for(let key in cart) {
+      let item = cart[key];
+      let rate = mode === 'retail' ? (parseFloat(item.retail) || 0) : (parseFloat(item.ws) || 0);
+      let sub = item.qty * rate;
+      total += sub;
+      container.innerHTML += `
+        <div class="item-row" style="display:flex; align-items:center; padding:5px 0; border-bottom:1px solid #eee;">
+          <div style="flex:1; font-size:13px;" onclick="editQty('${key}')"><b>${item.eng}</b></div>
+<div style="width:40px; font-size:12px;" onclick="editRate('${key}')">₹${rate}</div>
+          <div style="display:flex; align-items:center; gap:5px; width:70px; justify-content:center;">
+            <button class="qty-btn" style="padding:1px 6px;" onclick="updateQty('${key}', -1)">-</button>
+             
+             <b onclick="editQty('${key}')" style="min-width:20px; text-align:center;">${item.qty}</b>
+            <button class="qty-btn" style="padding:1px 6px;" onclick="updateQty('${key}', 1)">+</button>
+          </div>
+          <div style="width:55px; text-align:right; font-weight:bold;">${sub.toFixed(1)}</div>
+        </div>`;
+    }
+    document.getElementById('grandTotal').innerText = "₹" + total.toFixed(2);
+    calculateFinal();
+}
+        function editRate(key) {
+    // Pehle pucha jayega ki naya rate kya hai
+    let currentRate = mode === 'retail' ? cart[key].retail : cart[key].ws;
+    let newRate = prompt("Naya Rate (₹) likhein:", currentRate);
+    
+    if (newRate !== null && newRate !== "") {
+        let n = parseFloat(newRate);
+        if (n >= 0) {
+            // Cart mein us item ka rate update kar dena
+            if (mode === 'retail') {
+                cart[key].retail = n;
+            } else {
+                cart[key].ws = n;
+            }
+            updateBill(); // Bill refresh karein
+        } else {
+            alert("Sahi rate likhein!");
+        }
+    }
+}
+      function downloadCSV() {
+    let csv = "Item,Qty,Rate,Subtotal\n";
+    for(let k in cart) {
+        let r = mode === 'retail' ? cart[k].retail : cart[k].ws;
+        csv += `${cart[k].eng},${cart[k].qty},${r},${cart[k].qty*r}\n`;
+    }
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `Bill_${currentStore}.csv`; a.click();
+  }
+          async function shareBill() {
+    if (Object.keys(cart).length === 0) return alert("Pehle items add karein!");
+
+    const cName = document.getElementById('custName').value || "Customer";
+    
+    // Nayi Values nikalne ke liye (Balance Section)
+    const curBill = document.getElementById('grandTotal').innerText.replace(/[^\d.-]/g, '');
+    const pBal = document.getElementById('prevBal').value || "0";
+    const pAmt = document.getElementById('paidAmt').value || "0";
+    const nBal = document.getElementById('finalBalance').innerText.replace(/[^\d.-]/g, '');
+    
+    // Header
+    let shareTxt = `*A R SON'S STORE*\n--------------------------\n`;
+    shareTxt += `*Cust:* ${cName}\n*Date:* ${new Date().toLocaleDateString()}\n`;
+    shareTxt += `--------------------------\n`;
+
+    // Items Logic (Sirf pehle 5 items dikhane ke liye)
+    let keys = Object.keys(cart);
+    let limit = 5; 
+    let count = 0;
+
+    for (let key of keys) {
+        if (count < limit) {
+            let item = cart[key];
+            let rate = mode === 'retail' ? item.retail : item.ws;
+            shareTxt += `${count + 1}. ${item.eng} - ₹${rate} x ${item.qty}\n`;
+        }
+        count++;
+    }
+
+    if (count > limit) {
+        shareTxt += `...and ${count - limit} more items.\n`;
+    }
+
+    // --- HISAB KITAB SECTION ---
+    shareTxt += `--------------------------\n`;
+    shareTxt += `Current Bill:  ₹${curBill}\n`;
+    shareTxt += `Prev. Bal:     ₹${pBal}\n`;
+    shareTxt += `Aaj Jama:      ₹${pAmt}\n`;
+    shareTxt += `--------------------------\n`;
+    shareTxt += `*NET BALANCE:  ₹${nBal}*\n`;
+    shareTxt += `--------------------------\n`;
+    shareTxt += `Shukriya! Visit Again.`;
+
+    // Sharing Logic
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: 'Shop Bill',
+                text: shareTxt
+            });
+        } catch (err) {
+            console.log("Share cancel.");
+        }
+    } else {
+        navigator.clipboard.writeText(shareTxt);
+        alert("Bill copy ho gaya! WhatsApp par paste karein.");
+    }
+}
+async function printBill() {
+    if (Object.keys(cart).length === 0) return alert("Pehle Bill mein items add karein!");
+    try {
+        if (!printerDevice) {
+            printerDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ namePrefix: 'Bluetooth' }, { namePrefix: 'SRS' }, { namePrefix: 'MPT' }, { namePrefix: 'MTP' }],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
+        }
+        const server = await printerDevice.gatt.connect();
+        const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+        const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+        const clean = (id) => document.getElementById(id).innerText.replace(/[^\d.-]/g, '') || "0";
+        const cName = document.getElementById('custName')?.value || "Cash Customer";
+        const curBill = clean('grandTotal');
+        const pBal = document.getElementById('prevBal')?.value || "0";
+        const pAmt = document.getElementById('paidAmt')?.value || "0";
+        const nBal = clean('finalBalance');
+
+        // 1. Poora Bill Text taiyar karein
+        let esc = '\x1B\x40\x1B\x61\x01\x1B\x45\x01A R SON\'S STORE\n\x1B\x45\x00' + currentStore.toUpperCase() + ' BILL\n';
+        esc += "--------------------------------\n";
+        esc += '\x1B\x61\x00Date: ' + new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + '\n';
+        esc += "Cust: " + cName.substring(0, 22) + "\n--------------------------------\n";
+        esc += "Item        Rate   Qty   Amount\n--------------------------------\n";
+/*
+        for (let key in cart) {
+            let item = cart[key];
+            let r = (mode === 'retail' ? item.retail : item.ws) || 0;
+            let q = item.qty || 0;
+            let s = (r * q).toFixed(1);
+            let n = (item.eng || "Item").substring(0, 10).padEnd(11, ' ');
+            esc += n + r.toString().padEnd(6, ' ') + q.toString().padEnd(5, ' ') + s.toString().padStart(8, ' ') + "\n";
+        }
+*/
+        for (let key in cart) {
+    let item = cart[key];
+    let r = (mode === 'retail' ? item.retail : item.ws) || 0;
+    let q = item.qty || 0;
+    let s = (r * q).toFixed(1);
+
+    // --- SAFETY FILTER START ---
+    // Agar item.eng hai toh use lo, warna "Item" likho
+    let rawName = item.eng || "Item";
+
+    // Regex use karke Hindi ya non-English characters ko hata rahe hain
+    // Taaki printer sirf safe text hi receive kare
+    let cleanName = rawName.replace(/[^\x00-\x7F]/g, "").trim();
+
+    // Agar saaf karne ke baad naam khali ho jaye (matlab pura Hindi tha), 
+    // toh use "Manual Item" ya Item Code ka naam de dein
+    if (cleanName === "") {
+        cleanName = "New Item"; 
+    }
+
+    let n = cleanName.substring(0, 10).padEnd(11, ' ');
+    // --- SAFETY FILTER END ---
+
+    esc += n + r.toString().padEnd(6, ' ') + q.toString().padEnd(5, ' ') + s.toString().padStart(8, ' ') + "\n";
+}
+        esc += "--------------------------------\n";
+        esc += "Bill Total:    Rs. " + curBill.padStart(10) + "\n";
+        esc += "Prev. Balance: Rs. " + pBal.padStart(10) + "\n";
+        esc += "Aaj Jama:      Rs. " + pAmt.padStart(10) + "\n";
+        esc += "--------------------------------\n";
+        esc += '\x1B\x61\x02\x1B\x45\x01NET BAL: Rs. ' + nBal + '\n\x1B\x45\x00';
+        esc += '\x1B\x61\x01\nSHUKRIYA! VISIT AGAIN\n\n\n\n';
+
+        // 2. CHUNKING LOGIC: Data ko 100-100 bytes ke tukdon mein bhejna
+        const encoder = new TextEncoder();
+        const data = encoder.encode(esc);
+        const chunkSize = 100; // 512 se kaafi kam, taaki safety rahe
+
+        for (let i = 0; i < data.length; i += chunkSize) {
+            const chunk = data.slice(i, i + chunkSize);
+            await characteristic.writeValue(chunk);
+            // Chota sa delay taaki printer ko process karne ka time mile
+            await new Promise(resolve => setTimeout(resolve, 50)); 
+        }
+
+    } catch (error) {
+        alert("Print Error: " + error.message);
+        printerDevice = null;
+    }
+      }
+        // Modal kholne/band karne ke liye
+function openManualModal() {
+    document.getElementById('manualModal').style.display = 'flex';
+    document.getElementById('manualName').focus();
+}
+
+function closeManualModal() {
+    document.getElementById('manualModal').style.display = 'none';
+    document.getElementById('manualName').value = '';
+}
+
+// Sanitization Function (HTML tags hatane ke liye)
+function sanitizeInput(text) {
+    const temp = document.createElement('div');
+    temp.textContent = text;
+    return temp.innerHTML;
+}
+
+function addManualItem() {
+    let rawName = document.getElementById('manualName').value.trim();
+    
+    if (rawName === "") {
+        alert("Naam likhna zaroori hai!");
+        return;
+    }
+
+    // Security check: Naam ko sanitize karein
+    let cleanName = sanitizeInput(rawName);
+    
+    // Ek unique temporary code banayein (taaki cart mein mix na ho)
+    let tempCode = "MANUAL-" + Date.now();
+
+    // Cart mein entry (Rate aur Qty default 0)
+    cart[tempCode] = {
+        eng: cleanName,
+        hin: "Manual Entry",
+        retail: 0,
+        ws: 0,
+        qty: 0 // Default 0
+    };
+
+    updateBill(); // Bill screen refresh karein
+    closeManualModal(); // Modal band karein
+    
+    // Tip: Ab user bill screen par "Rate" aur "Qty" par click karke use badal sakta hai
+    /*alert(cleanName + " bill mein add ho gaya! Ab uska Rate aur Qty set kar lein.");*/
+}
+function downloadBillPDF() {
+    const element = document.getElementById('billArea'); // Jahan aapka bill show hota hai
+    
+    // PDF ki settings
+    const opt = {
+        margin:       10,
+        filename:     'Bill_' + (document.getElementById('custName').value || 'Customer') + '.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 }, // High quality ke liye
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Bill generate aur download karein
+    html2pdf().set(opt).from(element).save();
+}
+// 1. Bill Save karne ka function (Date + Time ke saath)
+function saveBillAsDraft() {
+    let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
+    
+    let now = new Date();
+    let timeStr = now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
+    let dateStr = now.toLocaleDateString();
+
+    let billData = {
+        id: "BILL-" + Date.now(),
+        customer: document.getElementById('custName').value || "Unknown",
+        items: JSON.parse(JSON.stringify(cart)), // Cart ki current copy
+        displayInfo: dateStr + " | " + timeStr,
+        total: document.getElementById('grandTotal').innerText
+    };
+
+    drafts.push(billData);
+    localStorage.setItem('billDrafts', JSON.stringify(drafts));
+    showDraftList();
+}
+
+// 2. Drafts dikhane ka function (Delete icon ke saath)
+function showDraftList() {
+    let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
+    let listDiv = document.getElementById('draftList');
+    listDiv.innerHTML = "";
+
+    drafts.reverse().forEach(bill => {
+        let div = document.createElement('div');
+        div.style = "display:flex; justify-content:space-between; align-items:center; background:#fff; padding:8px; border-radius:5px; margin-bottom:5px; border-left:4px solid var(--p); box-shadow:0 2px 4px rgba(0,0,0,0.1);";
+        
+        div.innerHTML = `
+            <div onclick="loadDraft('${bill.id}')" style="flex:1; cursor:pointer;">
+                <div style="font-weight:bold; font-size:13px;">${bill.customer}</div>
+                <div style="font-size:11px; color:gray;">${bill.displayInfo} - ${bill.total}</div>
+            </div>
+            <button onclick="deleteSingleDraft('${bill.id}')" style="background:none; border:none; color:red; font-size:18px; padding:0 10px;">🗑️</button>
+        `;
+        listDiv.appendChild(div);
+    });
+}
+
+// 3. Ek single bill delete karne ke liye
+function deleteSingleDraft(id) {
+    if(confirm("Ye bill delete karein?")) {
+        let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
+        drafts = drafts.filter(d => d.id !== id);
+        localStorage.setItem('billDrafts', JSON.stringify(drafts));
+        showDraftList();
+    }
+}
+
+// 4. Saare drafts clear karne ke liye
+function clearAllDrafts() {
+    if(confirm("Kya aap saare saved bills delete karna chahte hain?")) {
+        localStorage.removeItem('billDrafts');
+        showDraftList();
+    }
+}
+
+</script>
+</body>
+</html>
