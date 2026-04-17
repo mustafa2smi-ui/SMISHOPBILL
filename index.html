@@ -7,7 +7,8 @@
    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏬</text></svg>">
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <meta name="mobile-web-app-capable" content="yes">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Khan Shop">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏬</text></svg>">
     <style>
@@ -385,7 +386,8 @@ display: none;
           <button class="round-btn" style="background:#25D366" onclick="undo()">↩️</button>
             ​<button class="round-btn" style="background:#34495e" onclick="saveBillAsDraft()">💾</button>
           <button class="round-btn" style="background:#25D366" onclick="downloadBillPDF()">Pdf</button>
-           
+           <button class="round-btn" style="background:#3498db" onclick="printAsImage()">🖨️IMAGE</button>
+
           
           
         </div>
@@ -815,6 +817,67 @@ function stopScanner() {
     renderGrid(); 
     updateBill();
   }
+// 1. Image Printing Function
+async function printAsImage() {
+    const billElement = document.getElementById('billArea'); 
+    
+    // Bill ko photo mein badalna
+    const canvas = await html2canvas(billElement, {
+        scale: 1, 
+        backgroundColor: "#ffffff"
+    });
+
+    const ctx = canvas.getContext('2d');
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imgData.data;
+
+    let commands = [0x1B, 0x40]; // Printer Reset
+
+    const width = Math.floor((canvas.width + 7) / 8) * 8;
+    const height = canvas.height;
+
+    // Image printing command header
+    commands.push(0x1D, 0x76, 0x30, 0, width / 8, 0, height % 256, Math.floor(height / 256));
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x += 8) {
+            let byte = 0;
+            for (let bit = 0; bit < 8; bit++) {
+                let px = (y * canvas.width + (x + bit)) * 4;
+                if (x + bit < canvas.width) {
+                    let luminance = (pixels[px] + pixels[px+1] + pixels[px+2]) / 3;
+                    if (luminance < 128) byte |= (1 << (7 - bit));
+                }
+            }
+            commands.push(byte);
+        }
+    }
+    commands.push(0x1D, 0x56, 0x41, 0x10); // Paper Feed & Cut
+
+    const finalData = new Uint8Array(commands);
+    
+    // Bluetooth se bhejna (Chunking ke saath)
+    if (bluetoothDevice && bluetoothDevice.gatt.connected) {
+        const server = await bluetoothDevice.gatt.connect();
+        const service = await server.getPrimaryService('0000ff00-0000-1000-8000-00805f9b34fb');
+        const characteristic = await service.getCharacteristic('0000ff02-0000-1000-8000-00805f9b34fb');
+        
+        await sendDataInChunks(characteristic, finalData);
+        alert("Print Successfully!");
+    } else {
+        alert("Pehle Bluetooth connect karein!");
+    }
+}
+
+// 2. Chunking Function (20-20 bytes karke bhejna)
+async function sendDataInChunks(characteristic, data) {
+    const CHUNK_SIZE = 20;
+    for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+        const chunk = data.slice(i, i + CHUNK_SIZE);
+        await characteristic.writeValue(chunk);
+        await new Promise(resolve => setTimeout(resolve, 15)); 
+    }
+}
 
   // 4. CART & BILLING LOGIC
   function addToCart(code) {
