@@ -871,11 +871,12 @@ async function printAsImage() {
     }
 }
 */
-        async function printAsImage() {
+        
+             async function printAsImage() {
     if (Object.keys(cart).length === 0) return alert("Pehle Bill mein items add karein!");
 
     try {
-        // 1. Connection Logic (Wahi jo aapne pehle use kiya tha)
+        // 1. Connection check aur establishment
         if (!printerDevice || !printerDevice.gatt.connected) {
             printerDevice = await navigator.bluetooth.requestDevice({
                 filters: [
@@ -888,21 +889,27 @@ async function printAsImage() {
             });
             const server = await printerDevice.gatt.connect();
             const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
-            characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+            // Hum isi function ke andar characteristic nikal rahe hain
+            const char = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+            window.myChar = char; // Isse hum save kar lenge
         }
+
+        const activeChar = window.myChar;
+        if (!activeChar) throw new Error("Printer characteristic nahi mila!");
 
         // 2. Bill ko Photo mein badalna
         const billElement = document.getElementById('billArea');
         const canvas = await html2canvas(billElement, {
             scale: 1,
-            backgroundColor: "#ffffff"
+            backgroundColor: "#ffffff",
+            logging: false // Console saaf rakhne ke liye
         });
 
         const ctx = canvas.getContext('2d');
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const pixels = imgData.data;
 
-        // 3. Image Commands (Black & White conversion)
+        // 3. Image Commands Taiyar Karein
         let commands = [0x1B, 0x40]; 
         const width = Math.floor((canvas.width + 7) / 8) * 8;
         const height = canvas.height;
@@ -926,17 +933,26 @@ async function printAsImage() {
 
         // 4. Data Chunks mein bhejna
         const finalData = new Uint8Array(commands);
-        await sendDataInChunks(characteristic, finalData); // Yahan wahi 'characteristic' use ho raha hai
+        
+        // "undefined" error se bachne ke liye direct chunking yahan likh rahe hain
+        const CHUNK_SIZE = 20;
+        for (let i = 0; i < finalData.length; i += CHUNK_SIZE) {
+            const chunk = finalData.slice(i, i + CHUNK_SIZE);
+            await activeChar.writeValue(chunk);
+            // Thoda delay taaki printer handle kar sake
+            await new Promise(r => setTimeout(r, 10)); 
+        }
 
-        alert("Image Bill Printed! 🎉");
+        alert("Bill Printed! 🎉");
 
     } catch (error) {
-        console.error(error);
-        alert("Printer Error: " + error.message);
+        console.error("Print Error:", error);
+        alert("Printer Error: " + (error.message || "Kuch galti hui hai"));
     }
 }
+   
 
-
+/*
 // 2. Chunking Function (20-20 bytes karke bhejna)
 async function sendDataInChunks(characteristic, data) {
     const CHUNK_SIZE = 20;
@@ -946,7 +962,7 @@ async function sendDataInChunks(characteristic, data) {
         await new Promise(resolve => setTimeout(resolve, 15)); 
     }
 }
-
+*/
   // 4. CART & BILLING LOGIC
   function addToCart(code) {
     if(cart[code]) cart[code].qty++;
