@@ -424,6 +424,7 @@ display: none;
 let html5QrCode;
 let isScanning = false; // Bahar define karein
   let cartHistory = []; 
+let printCharacteristic = null;
 
 // --- UNDO LOGIC ---
 function saveHistory() {
@@ -817,6 +818,7 @@ function stopScanner() {
     renderGrid(); 
     updateBill();
   }
+        /*
 // 1. Image Printing Function
 async function printAsImage() {
     const billElement = document.getElementById('billArea'); 
@@ -866,6 +868,65 @@ async function printAsImage() {
         alert("Print Successfully!");
     } else {
         alert("Pehle Bluetooth connect karein!");
+    }
+}
+*/
+        async function printAsImage() {
+    try {
+        // 1. Agar printer connected nahi hai, toh pehle connect karein
+        if (!bluetoothDevice || !bluetoothDevice.gatt.connected) {
+            alert("Pehle Printer select aur connect karein...");
+            bluetoothDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['0000ff00-0000-1000-8000-00805f9b34fb'] }],
+                optionalServices: ['0000ff00-0000-1000-8000-00805f9b34fb']
+            });
+            const server = await bluetoothDevice.gatt.connect();
+            const service = await server.getPrimaryService('0000ff00-0000-1000-8000-00805f9b34fb');
+            printCharacteristic = await service.getCharacteristic('0000ff02-0000-1000-8000-00805f9b34fb');
+        }
+
+        // 2. Ab Bill ko Photo (Canvas) mein badlein
+        const billElement = document.getElementById('billArea');
+        const canvas = await html2canvas(billElement, {
+            scale: 1,
+            backgroundColor: "#ffffff"
+        });
+
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imgData.data;
+
+        // 3. Printer Commands Taiyar Karein
+        let commands = [0x1B, 0x40]; // Reset
+        const width = Math.floor((canvas.width + 7) / 8) * 8;
+        const height = canvas.height;
+
+        commands.push(0x1D, 0x76, 0x30, 0, width / 8, 0, height % 256, Math.floor(height / 256));
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x += 8) {
+                let byte = 0;
+                for (let bit = 0; bit < 8; bit++) {
+                    let px = (y * canvas.width + (x + bit)) * 4;
+                    if (x + bit < canvas.width) {
+                        let luminance = (pixels[px] + pixels[px+1] + pixels[px+2]) / 3;
+                        if (luminance < 128) byte |= (1 << (7 - bit));
+                    }
+                }
+                commands.push(byte);
+            }
+        }
+        commands.push(0x1D, 0x56, 0x41, 0x10); // Feed & Cut
+
+        // 4. Data Chunks mein bhejein
+        const finalData = new Uint8Array(commands);
+        await sendDataInChunks(printCharacteristic, finalData);
+        
+        alert("Print Done! 🎉");
+
+    } catch (error) {
+        console.error(error);
+        alert("Error: " + error.message);
     }
 }
 
