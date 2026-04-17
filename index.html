@@ -383,7 +383,7 @@ display: none;
             <button class="round-btn" style="background:#25D366" onclick="shareBill()">🔗</button>
             <button class="round-btn" style="background:var(--err)" onclick="clearBill()">❌</button>
           <button class="round-btn" style="background:#25D366" onclick="undo()">↩️</button>
-            <button class="round-btn" style="background:var(--err)" onclick="saveHistory()">Save</button>
+            ​<button class="round-btn" style="background:#34495e" onclick="saveBillAsDraft()">💾</button>
           <button class="round-btn" style="background:#25D366" onclick="downloadBillPDF()">Pdf</button>
            
           
@@ -421,17 +421,16 @@ display: none;
   let printerDevice = null;
 let html5QrCode;
 let isScanning = false; // Bahar define karein
-  let cartHistory = []; // Piche jane ke liye record
+  let cartHistory = []; 
 
+// --- UNDO LOGIC ---
 function saveHistory() {
-    // Cart ki copy history mein save karein (Max 10 steps)
     cartHistory.push(JSON.stringify(cart));
     if (cartHistory.length > 10) cartHistory.shift();
 }
 
 function undo() {
     if (cartHistory.length > 0) {
-        // Pichla state wapas layein
         cart = JSON.parse(cartHistory.pop());
         updateBill();
     } else {
@@ -439,9 +438,95 @@ function undo() {
     }
 }
 
-// Yaad rakhein: Jahan bhi aap cart mein badlav karte hain 
-// (jaise addToCart ya deleteItem), wahan updateBill() se pehle saveHistory() call karein.
-      
+// --- PDF LOGIC ---
+function downloadBillPDF() {
+    const element = document.getElementById('billArea');
+    const opt = {
+        margin: 10,
+        filename: 'Bill_' + (document.getElementById('custName').value || 'Customer') + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(element).save();
+}
+
+// --- DRAFT LOGIC ---
+function saveBillAsDraft() {
+    let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
+    let now = new Date();
+    let timeStr = now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
+    let dateStr = now.toLocaleDateString();
+
+    let billData = {
+        id: "BILL-" + Date.now(),
+        customer: document.getElementById('custName').value || "Unknown",
+        items: JSON.parse(JSON.stringify(cart)),
+        displayInfo: dateStr + " | " + timeStr,
+        total: document.getElementById('grandTotal').innerText
+    };
+
+    drafts.push(billData);
+    localStorage.setItem('billDrafts', JSON.stringify(drafts));
+    showDraftList();
+    alert("Bill Draft me save ho gaya!");
+}
+
+function showDraftList() {
+    let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
+    let listDiv = document.getElementById('draftList');
+    if(!listDiv) return; // Safety check
+    listDiv.innerHTML = "";
+
+    drafts.reverse().forEach(bill => {
+        let div = document.createElement('div');
+        div.className = "draft-card"; // Aap CSS se style kar sakte hain
+        div.style = "display:flex; justify-content:space-between; align-items:center; background:#fff; padding:10px; border-radius:8px; margin-bottom:8px; border-left:5px solid #27ae60; box-shadow:0 2px 5px rgba(0,0,0,0.1);";
+        
+        div.innerHTML = `
+            <div onclick="loadDraft('${bill.id}')" style="flex:1; cursor:pointer;">
+                <div style="font-weight:bold;">${bill.customer}</div>
+                <div style="font-size:12px; color:#666;">${bill.displayInfo} - ${bill.total}</div>
+            </div>
+            <button onclick="deleteSingleDraft('${bill.id}')" style="background:none; border:none; color:red; font-size:20px;">🗑️</button>
+        `;
+        listDiv.appendChild(div);
+    });
+}
+
+function loadDraft(billId) {
+    let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
+    let bill = drafts.find(d => d.id === billId);
+    if (bill) {
+        saveHistory(); // Current cart save karo load karne se pehle
+        cart = JSON.parse(JSON.stringify(bill.items));
+        document.getElementById('custName').value = bill.customer;
+        updateBill();
+        window.scrollTo(0,0);
+    }
+}
+
+function deleteSingleDraft(id) {
+    if(confirm("Ye bill delete karein?")) {
+        let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
+        drafts = drafts.filter(d => d.id !== id);
+        localStorage.setItem('billDrafts', JSON.stringify(drafts));
+        showDraftList();
+    }
+}
+
+function clearAllDrafts() {
+    if(confirm("Saare drafts delete karein?")) {
+        localStorage.removeItem('billDrafts');
+        showDraftList();
+    }
+}
+
+// --- AUTO RUN ON LOAD ---
+window.onload = function() {
+    showDraftList();
+};
+
 function startScanner() {
     document.getElementById('reader').style.display = 'block';
     document.getElementById('stopScanBtn').style.display = 'block';
@@ -1027,81 +1112,7 @@ function addManualItem() {
     
     // Tip: Ab user bill screen par "Rate" aur "Qty" par click karke use badal sakta hai
     /*alert(cleanName + " bill mein add ho gaya! Ab uska Rate aur Qty set kar lein.");*/
-}
-function downloadBillPDF() {
-    const element = document.getElementById('billArea'); // Jahan aapka bill show hota hai
-    
-    // PDF ki settings
-    const opt = {
-        margin:       10,
-        filename:     'Bill_' + (document.getElementById('custName').value || 'Customer') + '.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 }, // High quality ke liye
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    // Bill generate aur download karein
-    html2pdf().set(opt).from(element).save();
-}
-// 1. Bill Save karne ka function (Date + Time ke saath)
-function saveBillAsDraft() {
-    let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
-    
-    let now = new Date();
-    let timeStr = now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
-    let dateStr = now.toLocaleDateString();
-
-    let billData = {
-        id: "BILL-" + Date.now(),
-        customer: document.getElementById('custName').value || "Unknown",
-        items: JSON.parse(JSON.stringify(cart)), // Cart ki current copy
-        displayInfo: dateStr + " | " + timeStr,
-        total: document.getElementById('grandTotal').innerText
-    };
-
-    drafts.push(billData);
-    localStorage.setItem('billDrafts', JSON.stringify(drafts));
-    showDraftList();
-}
-
-// 2. Drafts dikhane ka function (Delete icon ke saath)
-function showDraftList() {
-    let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
-    let listDiv = document.getElementById('draftList');
-    listDiv.innerHTML = "";
-
-    drafts.reverse().forEach(bill => {
-        let div = document.createElement('div');
-        div.style = "display:flex; justify-content:space-between; align-items:center; background:#fff; padding:8px; border-radius:5px; margin-bottom:5px; border-left:4px solid var(--p); box-shadow:0 2px 4px rgba(0,0,0,0.1);";
-        
-        div.innerHTML = `
-            <div onclick="loadDraft('${bill.id}')" style="flex:1; cursor:pointer;">
-                <div style="font-weight:bold; font-size:13px;">${bill.customer}</div>
-                <div style="font-size:11px; color:gray;">${bill.displayInfo} - ${bill.total}</div>
-            </div>
-            <button onclick="deleteSingleDraft('${bill.id}')" style="background:none; border:none; color:red; font-size:18px; padding:0 10px;">🗑️</button>
-        `;
-        listDiv.appendChild(div);
-    });
-}
-
-// 3. Ek single bill delete karne ke liye
-function deleteSingleDraft(id) {
-    if(confirm("Ye bill delete karein?")) {
-        let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
-        drafts = drafts.filter(d => d.id !== id);
-        localStorage.setItem('billDrafts', JSON.stringify(drafts));
-        showDraftList();
-    }
-}
-
-// 4. Saare drafts clear karne ke liye
-function clearAllDrafts() {
-    if(confirm("Kya aap saare saved bills delete karna chahte hain?")) {
-        localStorage.removeItem('billDrafts');
-        showDraftList();
-    }
-}
+        }
 
 </script>
 </body>
