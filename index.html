@@ -1087,7 +1087,7 @@ async function printAsImage() {
 
         let commands = [0x1B, 0x40]; 
         // Darkness/Density badhane ka command (Kuch printers ke liye)
-commands.push(0x1D, 0x7C, 127); // 127 max density hai
+commands.push(0x1D, 0x7C, 130); // 127 max density hai
 
         const width = Math.floor((canvas.width + 7) / 8) * 8;
         const height = canvas.height;
@@ -1107,7 +1107,7 @@ commands.push(0x1D, 0x7C, 127); // 127 max density hai
             }
         }
         commands.push(0x1B, 0x64, 0x05); 
-
+commands.push(0x0A);
         const finalData = new Uint8Array(commands);
         for (let i = 0; i < finalData.length; i += 100) {
             const chunk = finalData.slice(i, i + 100);
