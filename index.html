@@ -1314,6 +1314,7 @@ function updateBill() {
     calculateFinal();
 }
 */
+        /*
     function updateBill() {
     const container = document.getElementById('billItems');
     let total = 0;
@@ -1347,6 +1348,57 @@ function updateBill() {
             </div>`;
     }
     
+    document.getElementById('grandTotal').innerText = "₹" + total.toFixed(2);
+    calculateFinal();
+}
+*/
+    // --- 1. Auto-Translate Function (Browser level par) ---
+async function autoTranslateText(text) {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=hi&tl=en&dt=t&q=${encodeURI(text)}`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        return data[0][0][0]; // English text return karega
+    } catch (e) {
+        return text; // Error aaya toh original Hindi return karega
+    }
+}
+
+// --- 2. Updated updateBill Function ---
+async function updateBill() {
+    const container = document.getElementById('billItems');
+    let total = 0;
+    container.innerHTML = "";
+
+    for(let key in cart) {
+        let item = cart[key];
+
+        // Agar English naam missing hai, toh abhi translate karo
+        if (!item.eng || item.eng.trim() === "") {
+            item.eng = await autoTranslateText(item.hin);
+        }
+
+        let rate = mode === 'retail' ? (parseFloat(item.retail) || 0) : (parseFloat(item.ws) || 0);
+        let sub = item.qty * rate;
+        total += sub;
+
+        // UI display logic
+        container.innerHTML += `
+            <div class="item-row" style="display:flex; align-items:center; padding:8px 0; border-bottom:1px solid #eee;">
+                <div style="flex:1; font-size:13px; line-height:1.2;" onclick="editQty('${key}')">
+                    <b>${item.hin}</b><br>
+                    <small style="color:#666; font-style:italic;">${item.eng}</small>
+                </div>
+                <div style="width:40px; font-size:12px; text-align:center;" onclick="editRate('${key}')">₹${rate}</div>
+                <div style="display:flex; align-items:center; gap:5px; width:70px; justify-content:center;">
+                    <button class="qty-btn" style="padding:1px 6px;" onclick="updateQty('${key}', -1)">-</button>
+                    <b onclick="editQty('${key}')" style="min-width:20px; text-align:center;">${item.qty}</b>
+                    <button class="qty-btn" style="padding:1px 6px;" onclick="updateQty('${key}', 1)">+</button>
+                </div>
+                <div style="width:55px; text-align:right; font-weight:bold;">${sub.toFixed(1)}</div>
+            </div>`;
+    }
+
     document.getElementById('grandTotal').innerText = "₹" + total.toFixed(2);
     calculateFinal();
 }
