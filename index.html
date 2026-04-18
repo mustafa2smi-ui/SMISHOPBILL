@@ -1033,41 +1033,12 @@ async function printAsImage() {
     }
 }
 */
-        async function printAsImage() {
-    if (Object.keys(cart).length === 0) return alert("Pehle items add karein!");
     
+async function printAsImage() {
+    if (Object.keys(cart).length === 0) return alert("Pehle items add karein!");
+
     try {
-        // --- STEP 1: BILL KA LAYOUT BANANA (SIRF PRINT KE LIYE) ---
-        const printArea = document.getElementById('finalPrintArea');
-        const cName = document.getElementById('custName')?.value || "Cash Customer";
-        const itemsHtml = document.getElementById('billItems').innerHTML; // Sirf items table
-
-        printArea.innerHTML = `
-            <div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:5px;">
-                <h3 style="margin:0;">A R Son's & SMI STORE</h3>
-                <p style="font-size:12px; margin:2px;">Grocery & Hardware</p>
-                <p style="font-size:10px;">Date: ${new Date().toLocaleString()}</p>
-            </div>
-            <div style="margin: 10px 0; font-size:12px;">
-                <b>Cust:</b> ${cName}
-            </div>
-            <div style="font-size:12px;">
-                ${itemsHtml} 
-            </div>
-            <div style="border-top:1px dashed #000; margin-top:10px; padding-top:5px; font-size:14px;">
-                <div style="display:flex; justify-content:space-between;">
-                    <b>TOTAL:</b> <b>${document.getElementById('grandTotal').innerText}</b>
-                </div>
-                <div style="display:flex; justify-content:space-between; font-size:12px;">
-                    <span>Net Bal:</span> <span>${document.getElementById('finalBalance').innerText}</span>
-                </div>
-            </div>
-            <div style="text-align:center; margin-top:15px; font-size:10px;">
-                *** Shukriya! Phir Aayein ***
-            </div>
-        `;
-
-        // --- STEP 2: BLUETOOTH CONNECTION ---
+        // 1. Connection check
         if (!printerDevice || !printerDevice.gatt.connected) {
             printerDevice = await navigator.bluetooth.requestDevice({
                 filters: [{ namePrefix: 'Bluetooth' }, { namePrefix: 'SRS' }, { namePrefix: 'MPT' }, { namePrefix: 'MTP' }],
@@ -1077,20 +1048,35 @@ async function printAsImage() {
             const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
             window.myChar = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
         }
-        const activeChar = window.myChar;
 
-        // --- STEP 3: IMAGE CONVERSION ---
-        const canvas = await html2canvas(printArea, { scale: 1, backgroundColor: "#ffffff" });
+        // 2. Sirf Bill Area ko taiyar karna
+        const printArea = document.getElementById('finalPrintArea');
+        printArea.innerHTML = `
+            <div style="text-align:center; padding-bottom:5px;">
+                <h3 style="margin:0; font-size:16px;">A R Son's & SMI STORE</h3>
+                <p style="font-size:12px; margin:2px;">Grocery & Hardware Specialist</p>
+                <p style="font-size:10px;">${new Date().toLocaleString()}</p>
+            </div>
+            <div style="margin:5px 0; font-size:12px;"><b>Customer:</b> ${document.getElementById('custName')?.value || "Cash Customer"}</div>
+            <div style="font-size:12px;">${document.getElementById('billItems').innerHTML}</div>
+            <div style="border-top:1px dashed #000; margin-top:10px; padding-top:5px; font-size:14px;">
+                <div style="display:flex; justify-content:space-between;"><b>TOTAL:</b> <b>${document.getElementById('grandTotal').innerText}</b></div>
+            </div>
+        `;
+
+        // 3. Image Conversion
+        const canvas = await html2canvas(printArea, { scale: 1.5, backgroundColor: "#ffffff" });
         const ctx = canvas.getContext('2d');
         const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const pixels = imgData.data;
 
+        // 4. Reset Printer (Important to stop Chinese characters)
         let commands = [0x1B, 0x40]; 
-        // Darkness/Density badhane ka command (Kuch printers ke liye)
-commands.push(0x1D, 0x7C, 130); // 127 max density hai
-
+        
         const width = Math.floor((canvas.width + 7) / 8) * 8;
         const height = canvas.height;
+
+        // Print Image Command
         commands.push(0x1D, 0x76, 0x30, 0, width / 8, 0, height % 256, Math.floor(height / 256));
 
         for (let y = 0; y < height; y++) {
@@ -1099,25 +1085,29 @@ commands.push(0x1D, 0x7C, 130); // 127 max density hai
                 for (let bit = 0; bit < 8; bit++) {
                     let px = (y * canvas.width + (x + bit)) * 4;
                     if (x + bit < canvas.width) {
-                        let isDark = (pixels[px] + pixels[px+1] + pixels[px+2]) / 3 < 130;
+                        let isDark = (pixels[px] + pixels[px+1] + pixels[px+2]) / 3 < 180;
                         if (isDark) byte |= (1 << (7 - bit));
                     }
                 }
                 commands.push(byte);
             }
         }
-        commands.push(0x1B, 0x64, 0x05); 
-commands.push(0x0A);
+        
+        // Feed Paper (08 lines)
+        commands.push(0x1B, 0x64, 0x08); 
+
+        // 5. Safe Chunk Sending (40 bytes, 25ms delay)
         const finalData = new Uint8Array(commands);
-        for (let i = 0; i < finalData.length; i += 100) {
-            const chunk = finalData.slice(i, i + 100);
-            await activeChar.writeValue(chunk);
-            await new Promise(r => setTimeout(r, 10)); 
+        for (let i = 0; i < finalData.length; i += 40) {
+            const chunk = finalData.slice(i, i + 40);
+            await window.myChar.writeValue(chunk);
+            await new Promise(r => setTimeout(r, 25)); 
         }
-        alert("Bill Printed Successfully! 🎉");
+
+        alert("Print Done! 🎉");
 
     } catch (error) {
-        alert("DETAILS: " + error.name + " - " + error.message);
+        alert("Error: " + error.message);
     }
 }
 
