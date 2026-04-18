@@ -443,7 +443,7 @@ function undo() {
         alert("Piche jane ke liye koi record nahi hai!");
     }
 }
-
+/*
 // --- PDF LOGIC ---
 function downloadBillPDF() {
     const element = document.getElementById('finalPrintArea');
@@ -455,6 +455,32 @@ function downloadBillPDF() {
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     html2pdf().set(opt).from(element).save();
+}
+*/
+    function downloadBillPDF() {
+    const printArea = document.getElementById('finalPrintArea');
+    
+    // 1. Data ko update karna zaruri hai
+    // Aapke updateBill() jaisa logic yahan bhi chahiye taki printArea bhara hua ho
+    printArea.innerHTML = `
+        <h2 style="text-align:center;">Bill Invoice</h2>
+        <p>Customer: ${document.getElementById('custName').value}</p>
+        <div>${document.getElementById('billItems').innerHTML}</div>
+        <hr>
+        <p>Total: ${document.getElementById('grandTotal').innerText}</p>
+    `;
+
+    // 2. PDF Options
+    const opt = {
+        margin: 10,
+        filename: 'Bill_' + (document.getElementById('custName').value || 'Customer') + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // 3. PDF Generate
+    html2pdf().set(opt).from(printArea).save();
 }
 
 // --- DRAFT LOGIC ---
