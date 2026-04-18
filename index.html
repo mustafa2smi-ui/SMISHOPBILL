@@ -1033,7 +1033,7 @@ async function printAsImage() {
     }
 }
 */
-    
+    /*
 async function printAsImage() {
     if (Object.keys(cart).length === 0) return alert("Pehle items add karein!");
 
@@ -1121,7 +1121,7 @@ async function printAsImage() {
         alert("Error: " + error.message);
     }
 }
-
+*/
 /*
 // 2. Chunking Function (20-20 bytes karke bhejna)
 async function sendDataInChunks(characteristic, data) {
@@ -1133,6 +1133,81 @@ async function sendDataInChunks(characteristic, data) {
     }
 }
 */
+        async function printAsImage() {
+    if (Object.keys(cart).length === 0) return alert("Pehle items add karein!");
+
+    try {
+        // Bluetooth Connection
+        if (!printerDevice || !printerDevice.gatt.connected) {
+            printerDevice = await navigator.bluetooth.requestDevice({
+                filters: [{ namePrefix: 'Bluetooth' }, { namePrefix: 'SRS' }, { namePrefix: 'MPT' }, { namePrefix: 'MTP' }],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
+            const server = await printerDevice.gatt.connect();
+            const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+            window.myChar = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+        }
+
+        // --- FIXED: HTML Structure chhede bina data copy karna ---
+        const tempDiv = document.createElement('div');
+        tempDiv.style.width = "384px";
+        tempDiv.style.background = "white";
+        tempDiv.style.padding = "10px";
+        tempDiv.style.textAlign = "center";
+        tempDiv.style.fontFamily = "monospace";
+        
+        // Data wahi se utha rahe hain jahan aapka bill dikh raha hai
+        tempDiv.innerHTML = `
+            <h3>A R Son's & SMI STORE</h3>
+            <div style="text-align:left;">${document.getElementById('billItems').innerHTML}</div>
+            <hr>
+            <div style="text-align:right;">
+                <b>TOTAL: ${document.getElementById('grandTotal').textContent}</b><br>
+                <b>Net Bal: ${document.getElementById('finalBalance').textContent}</b>
+            </div>
+        `;
+        document.body.appendChild(tempDiv);
+
+        // Canvas conversion
+        const canvas = await html2canvas(tempDiv, { scale: 1 });
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imgData.data;
+
+        // Printer commands
+        let commands = [0x1B, 0x40];
+        const width = 384;
+        const height = canvas.height;
+        commands.push(0x1D, 0x76, 0x30, 0, width / 8, 0, height % 256, Math.floor(height / 256));
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x += 8) {
+                let byte = 0;
+                for (let bit = 0; bit < 8; bit++) {
+                    let px = (y * canvas.width + (x + bit)) * 4;
+                    if (x + bit < canvas.width) {
+                        if ((pixels[px] + pixels[px+1] + pixels[px+2]) / 3 < 150) byte |= (1 << (7 - bit));
+                    }
+                }
+                commands.push(byte);
+            }
+        }
+        commands.push(0x1B, 0x64, 0x08);
+
+        // Chunk send
+        for (let i = 0; i < commands.length; i += 80) {
+            await window.myChar.writeValue(new Uint8Array(commands.slice(i, i + 80)));
+            await new Promise(r => setTimeout(r, 10));
+        }
+
+        document.body.removeChild(tempDiv); // Temporary div hatao
+        alert("Print Done!");
+
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
+}
+
   // 4. CART & BILLING LOGIC
   function addToCart(code) {
     if(cart[code]) cart[code].qty++;
