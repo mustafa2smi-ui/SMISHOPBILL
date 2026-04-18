@@ -446,7 +446,7 @@ function undo() {
 
 // --- PDF LOGIC ---
 function downloadBillPDF() {
-    const element = document.getElementById('billArea');
+    const element = document.getElementById('finalPrintArea');
     const opt = {
         margin: 10,
         filename: 'Bill_' + (document.getElementById('custName').value || 'Customer') + '.pdf',
