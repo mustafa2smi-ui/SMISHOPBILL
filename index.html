@@ -415,8 +415,14 @@ display: none;
         </div>
     </div>
 </div>
-        <div id="finalPrintArea" style="position: absolute; left: -9999px; width: 384px; background: white; color: black; padding: 10px; font-family: monospace;">
-    </div>
+        <!--<div id="finalPrintArea" style="position: absolute; left: -9999px; width: 384px; background: white; color: black; padding: 10px; font-family: monospace;">
+        </div>-->
+<div id="finalPrintArea" style="position: absolute; left: -9999px; width: 384px; background: white; padding: 10px; font-family: monospace;">
+    <div id="printHeader" style="text-align:center; margin-bottom:10px;">
+        </div>
+    <div id="printContent">
+        </div>
+</div>
 
     <script>
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwEf_fDwLfESUew5Sr8iBNF_cdcTb_Boz6ud9LqvHEU9VHN0RtwfimwmMPCUSOEN3uMhQ/exec";
@@ -459,25 +465,26 @@ function downloadBillPDF() {
 */
     async function downloadBillPDF() {
     const printArea = document.getElementById('finalPrintArea');
-    const billItemsHTML = document.getElementById('billItems').innerHTML;
-    const total = document.getElementById('grandTotal').innerText;
-    const netBal = document.getElementById('finalBalance').innerText;
-    const custName = document.getElementById('custName')?.value || "Customer";
+    const custName = document.getElementById('custName')?.value || "Guest";
+    let now = new Date();
+    let dateStr = now.toLocaleDateString('hi-IN') + " " + now.toLocaleTimeString('hi-IN', {hour: '2-digit', minute:'2-digit'});
 
-    // 1. Data ko Print Area mein inject karein
+    // HTML ko dynamic fill karna
     printArea.innerHTML = `
-        <div style="text-align:center;">
-            <h3>A R Son's & SMI STORE</h3>
+        <div style="text-align:center; font-weight:bold;">
             <p>Customer: ${custName}</p>
+            <p>Date: ${dateStr}</p>
         </div>
-        <div style="border-top:1px solid #000; padding:10px 0;">
-            ${billItemsHTML}
+        <div style="margin-top:10px;">
+            ${document.getElementById('billItems').innerHTML}
         </div>
-        <div style="border-top:2px solid #000; margin-top:10px; text-align:right;">
-            <p>Grand Total: ${total}</p>
-            <p><strong>Net Balance: ${netBal}</strong></p>
+        <div style="text-align:right; margin-top:10px;">
+            <b>Total: ${document.getElementById('grandTotal').innerText}</b>
         </div>
     `;
+    
+    // ... baaki ka PDF code (scale, save, etc.)
+
 
     // 2. CSS ko temporarily PDF ke liye visible banayein
     printArea.style.position = "relative";
