@@ -1283,6 +1283,7 @@ function updateBill() {
     calculateFinal();
 }
         */
+        /*
             function updateBill() {
     const container = document.getElementById('billItems');
     let total = 0;
@@ -1309,6 +1310,43 @@ function updateBill() {
           <div style="width:55px; text-align:right; font-weight:bold;">${sub.toFixed(1)}</div>
         </div>`;
     }
+    document.getElementById('grandTotal').innerText = "₹" + total.toFixed(2);
+    calculateFinal();
+}
+*/
+    function updateBill() {
+    const container = document.getElementById('billItems');
+    let total = 0;
+    container.innerHTML = "";
+    
+    for(let key in cart) {
+        let item = cart[key];
+        
+        // Rate calculate karne ka logic
+        let rate = mode === 'retail' ? (parseFloat(item.retail) || 0) : (parseFloat(item.ws) || 0);
+        let sub = item.qty * rate;
+        total += sub;
+
+        // Logic: Agar English (eng) hai toh dikhao, nahi toh sirf Hindi (hin) dikhao
+        let displayHtml = (item.eng && item.eng.trim() !== "") 
+            ? `<b>${item.hin}</b><br><small style="color:#666;">${item.eng}</small>` 
+            : `<b>${item.hin}</b>`;
+
+        container.innerHTML += `
+            <div class="item-row" style="display:flex; align-items:center; padding:8px 0; border-bottom:1px solid #eee;">
+                <div style="flex:1; font-size:13px; line-height:1.2;" onclick="editQty('${key}')">
+                    ${displayHtml}
+                </div>
+                <div style="width:40px; font-size:12px; text-align:center;" onclick="editRate('${key}')">₹${rate}</div>
+                <div style="display:flex; align-items:center; gap:5px; width:70px; justify-content:center;">
+                    <button class="qty-btn" style="padding:1px 6px;" onclick="updateQty('${key}', -1)">-</button>
+                    <b onclick="editQty('${key}')" style="min-width:20px; text-align:center;">${item.qty}</b>
+                    <button class="qty-btn" style="padding:1px 6px;" onclick="updateQty('${key}', 1)">+</button>
+                </div>
+                <div style="width:55px; text-align:right; font-weight:bold;">${sub.toFixed(1)}</div>
+            </div>`;
+    }
+    
     document.getElementById('grandTotal').innerText = "₹" + total.toFixed(2);
     calculateFinal();
 }
