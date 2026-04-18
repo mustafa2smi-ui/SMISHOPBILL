@@ -807,8 +807,8 @@ function stopScanner() {
 
     grid.innerHTML = filtered.map(i => `
       <div class="p-card" onclick="addToCart('${i.code}')">
-        <strong>${i.eng}</strong>
-        <small>(${i.hin})</small><br>
+        <strong>${i.hin}</strong>
+        <small>(${i.eng})</small><br>
         <span style="color:var(--p); font-weight:bold;">₹${mode === 'retail' ? i.retail : i.ws}</span>
       </div>
     `).join('');
