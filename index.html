@@ -1106,7 +1106,7 @@ commands.push(0x1D, 0x7C, 130); // 127 max density hai
                 commands.push(byte);
             }
         }
-        commands.push(0x1B, 0x64, 0x08); 
+        commands.push(0x1B, 0x64, 0x05); 
 
         const finalData = new Uint8Array(commands);
         for (let i = 0; i < finalData.length; i += 100) {
