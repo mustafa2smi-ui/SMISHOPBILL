@@ -458,19 +458,12 @@ function downloadBillPDF() {
 }
 */
     function downloadBillPDF() {
-    const printArea = document.getElementById('finalPrintArea');
+    const element = document.getElementById('finalPrintArea');
     
-    // 1. Data ko update karna zaruri hai
-    // Aapke updateBill() jaisa logic yahan bhi chahiye taki printArea bhara hua ho
-    printArea.innerHTML = `
-        <h2 style="text-align:center;">Bill Invoice</h2>
-        <p>Customer: ${document.getElementById('custName').value}</p>
-        <div>${document.getElementById('billItems').innerHTML}</div>
-        <hr>
-        <p>Total: ${document.getElementById('grandTotal').innerText}</p>
-    `;
-
-    // 2. PDF Options
+    // 1. Temporarily visible banayein (Position fix)
+    element.style.position = "relative";
+    element.style.left = "0px";
+    
     const opt = {
         margin: 10,
         filename: 'Bill_' + (document.getElementById('custName').value || 'Customer') + '.pdf',
@@ -479,9 +472,14 @@ function downloadBillPDF() {
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // 3. PDF Generate
-    html2pdf().set(opt).from(printArea).save();
+    // 2. Generate PDF
+    html2pdf().set(opt).from(element).save().then(() => {
+        // 3. Wapas waisa hi kar dein (Hide it again)
+        element.style.position = "absolute";
+        element.style.left = "-9999px";
+    });
 }
+
 
 // --- DRAFT LOGIC ---
 function saveBillAsDraft() {
