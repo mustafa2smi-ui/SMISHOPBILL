@@ -801,7 +801,7 @@ function stopScanner() {
     
     // Ab Rate ke hisab se filter karein (Sirf > 0 wale dikhao)
     filtered = filtered.filter(i => {
-        let rate = mode === 'retail' ? parseFloat(i.retail) : parseFloat(i.ws);
+        let rate = mode === 'ws' ? parseFloat(i.ws) : parseFloat(i.retail);
         return rate > 0; // Agar rate 0 ya khali hai toh display nahi hoga
     });
 
@@ -809,7 +809,7 @@ function stopScanner() {
       <div class="p-card" onclick="addToCart('${i.code}')">
         <strong>${i.hin}</strong>
         <small>(${i.eng})</small><br>
-        <span style="color:var(--p); font-weight:bold;">₹${mode === 'retail' ? i.retail : i.ws}</span>
+        <span style="color:var(--p); font-weight:bold;">₹${mode === 'ws' ? i.ws : i.retail}</span>
       </div>
     `).join('');
 }
