@@ -1352,6 +1352,7 @@ function updateBill() {
     calculateFinal();
 }
 */
+        /*
     // --- 1. Auto-Translate Function (Browser level par) ---
 async function autoTranslateText(text) {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=hi&tl=en&dt=t&q=${encodeURI(text)}`;
@@ -1363,7 +1364,22 @@ async function autoTranslateText(text) {
         return text; // Error aaya toh original Hindi return karega
     }
 }
+        */
+            async function autoTranslateText(text) {
+    // Agar text pehle se English hai, toh wahi return karo (bina Google call kiye)
+    if (/^[a-zA-Z0-9\s]+$/.test(text)) return text;
+    
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURI(text)}`;
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        return data[0][0][0];
+    } catch (e) {
+        return text; 
+    }
+}
 
+/*
 // --- 2. Updated updateBill Function ---
 async function updateBill() {
     const container = document.getElementById('billItems');
@@ -1400,6 +1416,40 @@ async function updateBill() {
     }
 
     document.getElementById('grandTotal').innerText = "₹" + total.toFixed(2);
+    calculateFinal();
+}
+*/
+    async function updateBill() {
+    const container = document.getElementById('billItems');
+    let total = 0;
+    container.innerHTML = "";
+
+    for(let key in cart) {
+        let item = cart[key];
+
+        // LOGIC: Check karo ki kaunsa field Hindi hai aur kaunsa English
+        // Agar eng khali hai, toh pehle check karo ki hin English toh nahi?
+        // Agar hin Hindi hai, toh eng ko translate karo.
+        
+        if (!item.eng || item.eng.trim() === "") {
+             item.eng = await autoTranslateText(item.hin);
+        }
+
+        let rate = mode === 'retail' ? (parseFloat(item.retail) || 0) : (parseFloat(item.ws) || 0);
+        let sub = item.qty * rate;
+        total += sub;
+
+        container.innerHTML += `
+            <div class="item-row" style="...">
+                <div style="flex:1; font-size:13px;" onclick="editQty('${key}')">
+                    <b>${item.hin}</b><br>
+                    <small style="color:#666; font-style:italic;">${item.eng}</small>
+                </div>
+                ...
+            </div>`;
+    }
+    // ... total aur calculateFinal
+        document.getElementById('grandTotal').innerText = "₹" + total.toFixed(2);
     calculateFinal();
 }
 
@@ -1596,7 +1646,7 @@ function sanitizeInput(text) {
     temp.textContent = text;
     return temp.innerHTML;
 }
-
+/*
 function addManualItem() {
     let rawName = document.getElementById('manualName').value.trim();
     
@@ -1624,8 +1674,27 @@ function addManualItem() {
     closeManualModal(); // Modal band karein
     
     // Tip: Ab user bill screen par "Rate" aur "Qty" par click karke use badal sakta hai
-    /*alert(cleanName + " bill mein add ho gaya! Ab uska Rate aur Qty set kar lein.");*/
+    /*alert(cleanName + " bill mein add ho gaya! Ab uska Rate aur Qty set kar lein.");*
         }
+*/
+        async function addManualItem() {
+    let rawName = document.getElementById('manualName').value.trim();
+    if (rawName === "") return;
+
+    // Manual entry ke liye pehle translate call karo
+    let translated = await autoTranslateText(rawName);
+
+    let tempCode = "MANUAL-" + Date.now();
+    cart[tempCode] = {
+        eng: translated, // Ye English ban jayega
+        hin: rawName,    // Ye Hindi rahega
+        retail: 0,
+        ws: 0,
+        qty: 1
+    };
+    updateBill();
+    closeManualModal();
+}
 
 </script>
 </body>
