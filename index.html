@@ -1086,6 +1086,9 @@ async function printAsImage() {
         const pixels = imgData.data;
 
         let commands = [0x1B, 0x40]; 
+        // Darkness/Density badhane ka command (Kuch printers ke liye)
+commands.push(0x1D, 0x7C, 127); // 127 max density hai
+
         const width = Math.floor((canvas.width + 7) / 8) * 8;
         const height = canvas.height;
         commands.push(0x1D, 0x76, 0x30, 0, width / 8, 0, height % 256, Math.floor(height / 256));
@@ -1106,10 +1109,10 @@ async function printAsImage() {
         commands.push(0x1B, 0x64, 0x03); 
 
         const finalData = new Uint8Array(commands);
-        for (let i = 0; i < finalData.length; i += 20) {
-            const chunk = finalData.slice(i, i + 20);
+        for (let i = 0; i < finalData.length; i += 100) {
+            const chunk = finalData.slice(i, i + 100);
             await activeChar.writeValue(chunk);
-            await new Promise(r => setTimeout(r, 15)); 
+            await new Promise(r => setTimeout(r, 10)); 
         }
         alert("Bill Printed Successfully! 🎉");
 
