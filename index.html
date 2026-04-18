@@ -457,28 +457,49 @@ function downloadBillPDF() {
     html2pdf().set(opt).from(element).save();
 }
 */
-    function downloadBillPDF() {
-    const element = document.getElementById('finalPrintArea');
-    
-    // 1. Temporarily visible banayein (Position fix)
-    element.style.position = "relative";
-    element.style.left = "0px";
-    
+    async function downloadBillPDF() {
+    const printArea = document.getElementById('finalPrintArea');
+    const billItemsHTML = document.getElementById('billItems').innerHTML;
+    const total = document.getElementById('grandTotal').innerText;
+    const netBal = document.getElementById('finalBalance').innerText;
+    const custName = document.getElementById('custName')?.value || "Customer";
+
+    // 1. Data ko Print Area mein inject karein
+    printArea.innerHTML = `
+        <div style="text-align:center;">
+            <h3>A R Son's & SMI STORE</h3>
+            <p>Customer: ${custName}</p>
+        </div>
+        <div style="border-top:1px solid #000; padding:10px 0;">
+            ${billItemsHTML}
+        </div>
+        <div style="border-top:2px solid #000; margin-top:10px; text-align:right;">
+            <p>Grand Total: ${total}</p>
+            <p><strong>Net Balance: ${netBal}</strong></p>
+        </div>
+    `;
+
+    // 2. CSS ko temporarily PDF ke liye visible banayein
+    printArea.style.position = "relative";
+    printArea.style.left = "0px";
+
+    // 3. PDF Generate karein
     const opt = {
-        margin: 10,
-        filename: 'Bill_' + (document.getElementById('custName').value || 'Customer') + '.pdf',
+        margin: 5,
+        filename: 'Bill_' + custName + '.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // 2. Generate PDF
-    html2pdf().set(opt).from(element).save().then(() => {
-        // 3. Wapas waisa hi kar dein (Hide it again)
-        element.style.position = "absolute";
-        element.style.left = "-9999px";
-    });
+    await html2pdf().set(opt).from(printArea).save();
+
+    // 4. Wapas chhupa dein
+    printArea.style.position = "absolute";
+    printArea.style.left = "-9999px";
+    printArea.innerHTML = ""; // Khali kar dein taaki memory bachhe
 }
+
 
 
 // --- DRAFT LOGIC ---
