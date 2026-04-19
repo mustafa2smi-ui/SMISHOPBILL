@@ -1010,6 +1010,14 @@ async function printBill() {
         printerDevice = null;
     }
       }
+    function undo() {
+    if (cartHistory.length > 0) {
+        cart = JSON.parse(cartHistory.pop());
+        updateBill();
+    } else {
+        alert("Piche jane ke liye koi record nahi hai!");
+    }
+}
 </script>
 </body>
     </html>
