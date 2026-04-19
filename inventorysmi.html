@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root { --primary: #3498db; --bg: #f4f7f6; }
+        body { font-family: sans-serif; background: var(--bg); padding: 10px; }
+        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
+        input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        tr:nth-child(even) { background: #f9f9f9; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h3 style="margin-top:0;">Inventory Entry</h3>
+    <input type="text" id="code" placeholder="Code">
+    <input type="text" id="eng" placeholder="Item Name (English)">
+    <input type="text" id="hin" placeholder="Item Name (Hindi)">
+    <input type="text" id="cat" placeholder="Category">
+    <input type="text" id="unit" placeholder="Unit">
+    <input type="number" id="retail" placeholder="Retail Price">
+    <input type="number" id="ws" placeholder="Wholesale Price">
+    <button onclick="submitData()" style="background:#2ecc71; color:white;">Save Product</button>
+</div>
+
+<div class="card">
+    <h3>Inventory List</h3>
+    <table id="invTable">
+        <thead><tr><th>Code</th><th>Name</th><th>Retail</th><th>Action</th></tr></thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+    const WEB_APP_URL = "YOUR_WEB_APP_URL_HERE";
+
+    async function submitData() {
+        let data = {
+            code: document.getElementById('code').value,
+            eng: document.getElementById('eng').value,
+            hin: document.getElementById('hin').value,
+            cat: document.getElementById('cat').value,
+            unit: document.getElementById('unit').value,
+            retail: document.getElementById('retail').value,
+            ws: document.getElementById('ws').value
+        };
+        
+        await fetch(WEB_APP_URL, { method: "POST", mode: 'no-cors', body: JSON.stringify(data) });
+        alert("Saved!");
+        loadData();
+    }
+
+    async function loadData() {
+        let res = await fetch(WEB_APP_URL);
+        let data = await res.json();
+        let html = "";
+        data.forEach((row, index) => {
+            if(index > 0) { // Header skip
+                html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[5]}</td>
+                         <td><button onclick="editRow(${index})">Edit</button></td></tr>`;
+            }
+        });
+        document.getElementById('tableBody').innerHTML = html;
+    }
+    
+    window.onload = loadData;
+</script>
+</body>
+</html>
