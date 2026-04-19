@@ -421,7 +421,7 @@ function showDraftList() {
         listDiv.appendChild(div);
     });
 }
-
+/*
 function loadDraft(billId) {
     let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
     let bill = drafts.find(d => d.id === billId);
@@ -431,6 +431,25 @@ function loadDraft(billId) {
         document.getElementById('custName').value = bill.customer;
         updateBill();
         window.scrollTo(0,0);
+    }
+}
+*/
+    function loadDraft(billId) {
+    let drafts = JSON.parse(localStorage.getItem('billDrafts') || '[]');
+    let bill = drafts.find(d => d.id === billId);
+    
+    if (bill) {
+        saveHistory(); // Current cart save karo load karne se pehle
+        
+        cart = JSON.parse(JSON.stringify(bill.items));
+        
+        // --- SANITIZATION UPDATE ---
+        // Yahan bill.customer ko sanitize karke field mein set kar rahe hain
+        let safeCustName = sanitizeInput(bill.customer);
+        document.getElementById('custName').value = safeCustName;
+        
+        updateBill();
+        window.scrollTo(0, 0);
     }
 }
 
@@ -561,7 +580,8 @@ function clearAllDrafts() {
     `).join('');
         }
   async function addManualItem() {
-    let rawName = document.getElementById('manualName').value.trim();
+    let rawName = sanitizeInput(document.getElementById('manualName').value.trim());
+
     if (rawName === "") return;
 
     // Manual entry ke liye pehle translate call karo
@@ -677,6 +697,7 @@ function stopScanner() {
   }
   // 4. CART & BILLING LOGIC
   function addToCart(code) {
+      saveHistory();
     if(cart[code]) cart[code].qty++;
     else {
       const p = inventory.find(i => i.code == code);
@@ -689,6 +710,7 @@ function stopScanner() {
 
         
   function updateQty(code, d) {
+      saveHistory();
     if(cart[code]) {
       cart[code].qty += d;
       if(cart[code].qty <= 0) delete cart[code];
@@ -697,7 +719,7 @@ function stopScanner() {
   }
 
   function clearBill() {
-    if(confirm("Clear current bill?")) { cart = {}; document.getElementById('custName').value = ""; updateBill(); }
+    if(confirm("Clear current bill?")) { saveHistory(); cart = {}; document.getElementById('custName').value = ""; updateBill(); }
   }
       // 1. Manual Qty for Half (.5) ya koi bhi number
 function editQty(code) {
@@ -833,7 +855,9 @@ function sanitizeInput(text) {
 }
 async function downloadBillPDF() {
     const printArea = document.getElementById('finalPrintArea');
-    const custName = document.getElementById('custName')?.value || "Guest";
+    let rawValue = document.getElementById('custName')?.value || "Guest";
+const custName = sanitizeInput(rawValue);
+
     let now = new Date();
     let dateStr = now.toLocaleDateString('hi-IN') + " " + now.toLocaleTimeString('hi-IN', {hour: '2-digit', minute:'2-digit'});
 
