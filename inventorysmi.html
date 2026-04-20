@@ -37,6 +37,13 @@
                 <tr style="background:#eee;">
                     <th>Store</th><th>Code</th><th>Name</th><th>Retail</th>
                 </tr>
+                <tr id="row-${i}">
+    <td>${row[0]}</td> <td>${row[1]}</td> <td>${row[2]}</td> <td>
+        <button onclick="editItem(${i})">✏️</button>
+        <button onclick="deleteItem(${i})">🗑️</button>
+    </td>
+</tr>
+
             </thead>
             <tbody id="tableBody">
                 </tbody>
