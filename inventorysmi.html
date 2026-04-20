@@ -35,6 +35,12 @@
     <input type="number" id="ws" placeholder="Wholesale Price">
     <button id="saveBtn" onclick="submitData()" style="background:#2ecc71; color:white;">Save Product</button>
 </div>
+    <div style="margin: 10px 0;">
+    <button onclick="loadData()" style="background:#3498db; color:white; padding:8px 15px; border:none; border-radius:5px;">
+        🔄 Refresh Table
+    </button>
+</div>
+
 <div class="card" style="margin-top:20px;">
     <h3>Inventory List</h3>
     <div style="overflow-x:auto;"> <table id="invTable" style="width:100%; border-collapse: collapse; font-size: 13px;">
@@ -93,6 +99,15 @@
         }
     }
     
+    // Page load hote hi check karein ki kya password pehle daal diya tha?
+    window.onload = function() {
+        if (sessionStorage.getItem("isLoggedIn") === "true") {
+            document.getElementById('passwordOverlay').style.display = 'none';
+        }
+        loadData(); // Data load karein
+    };
+
+
     function checkPass() {
         let pass = document.getElementById('passInput').value;
         // Yahan apna password rakhein (Example: 1234)
