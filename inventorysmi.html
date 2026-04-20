@@ -30,7 +30,19 @@
     <input type="number" id="ws" placeholder="Wholesale Price">
     <button id="saveBtn" onclick="submitData()" style="background:#2ecc71; color:white;">Save Product</button>
 </div>
-
+<div class="card" style="margin-top:20px;">
+    <h3>Inventory List</h3>
+    <div style="overflow-x:auto;"> <table id="invTable" style="width:100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+                <tr style="background:#eee;">
+                    <th>Store</th><th>Code</th><th>Name</th><th>Retail</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwzyxHkroGIdZcIDZlEQIsJtiD_Fo5NgG-HDvyTPLmtzLyk1P2LthHbesRHz-kGBgiV/exec";
 
@@ -74,4 +86,32 @@
             btn.disabled = false;
         }
     }
+    // Ye function page load hote hi aur entry save hone ke baad chalega
+    async function loadData() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
+
+        try {
+            let res = await fetch(WEB_APP_URL);
+            let data = await res.json();
+            
+            let html = "";
+            // Header skip karne ke liye i=1 se start kiya
+            for (let i = 1; i < data.length; i++) {
+                let row = data[i];
+                html += `<tr>
+                    <td>${row[0]}</td>
+                    <td>${row[1]}</td>
+                    <td>${row[2]}</td>
+                    <td>₹${row[6]}</td>
+                </tr>`;
+            }
+            tbody.innerHTML = html;
+        } catch(e) {
+            tbody.innerHTML = "<tr><td colspan='4'>Error loading data</td></tr>";
+        }
+    }
+
+    // Load function ko window onload mein daal dein
+    window.onload = loadData;
 </script>
