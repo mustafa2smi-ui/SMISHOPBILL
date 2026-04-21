@@ -239,6 +239,7 @@ for (let i = 1; i < result.grocery.length; i++) {
     }
 }
     */
+    /*
     async function loadData() {
     let filter = document.getElementById('filterSelect').value;
     const tbody = document.getElementById('tableBody');
@@ -287,6 +288,48 @@ for (let i = 1; i < result.grocery.length; i++) {
         tbody.innerHTML = html;
     } catch(e) {
         tbody.innerHTML = "<tr><td colspan='5'>Error: " + e.message + "</td></tr>";
+    }
+}
+*/
+    async function loadData() {
+    let filter = document.getElementById('filterSelect').value;
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
+
+    try {
+        let res = await fetch(WEB_APP_URL);
+        let result = await res.json();
+        
+        // Safety Check: agar data na ho toh empty array use karein
+        let groceryData = result.grocery || [];
+        let hardwareData = result.hardware || [];
+        
+        let html = "";
+
+        // GROCERY
+        if (filter === "All" || filter === "Grocery") {
+            for (let i = 1; i < groceryData.length; i++) {
+                let row = groceryData[i];
+                html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>₹${row[6]}</td>
+                <td><button onclick="editRow(${i + 1}, 'Grocery')">✏️</button>
+                    <button onclick="deleteRow(${i + 1}, 'Grocery')" style="background:red; color:white;">❌</button></td></tr>`;
+            }
+        }
+
+        // HARDWARE
+        if (filter === "All" || filter === "Hardware") {
+            for (let i = 1; i < hardwareData.length; i++) {
+                let row = hardwareData[i];
+                html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>₹${row[6]}</td>
+                <td><button onclick="editRow(${i + 1}, 'Hardware')">✏️</button>
+                    <button onclick="deleteRow(${i + 1}, 'Hardware')" style="background:red; color:white;">❌</button></td></tr>`;
+            }
+        }
+        
+        tbody.innerHTML = html.length > 0 ? html : "<tr><td colspan='5'>Koi data nahi mila</td></tr>";
+    } catch(e) {
+        tbody.innerHTML = "<tr><td colspan='5'>Error: " + e.message + "</td></tr>";
+        console.log("Error details:", e); // Console mein error dekhein
     }
 }
 
