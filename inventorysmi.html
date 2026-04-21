@@ -57,7 +57,10 @@
 </div>
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzSOb1bmxV2HnJP6tnyD_CfgQJnYzCsFXnEirK4S3k4vxl3omjXdWiL0Pga_rXp5iHrAA/exec";
-/*
+let editRowIndex = null; // Variable track karne ke liye ki kaunsi row edit ho rahi hai
+
+
+    /*
     async function submitData() {
         const btn = document.getElementById('saveBtn');
         // Validation check
@@ -194,12 +197,26 @@
         
         let html = "";
         
-        // Grocery ka data (Sheet1)
+       /* // Grocery ka data (Sheet1)
         for (let i = 1; i < result.grocery.length; i++) {
             let row = result.grocery[i];
             html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>₹${row[6]}</td></tr>`;
         }
-        
+        */
+        // loadData mein loop ke andar ye line change karein:
+for (let i = 1; i < result.grocery.length; i++) {
+            let row = result.grocery[i];
+        html += `<tr>
+    <td>${row[0]}</td>
+    <td>${row[1]}</td>
+    <td>${row[2]}</td>
+    <td>₹${row[6]}</td>
+    <td>
+        <button onclick="editRow(${i + 1}, '${filter}')">✏️</button>
+        <button onclick="deleteRow(${i + 1}, '${filter}')" style="background:red; color:white;">❌</button>
+    </td>
+</tr>`;
+    }
         // Hardware ka data (Sheet3)
         for (let i = 1; i < result.hardware.length; i++) {
             let row = result.hardware[i];
@@ -210,6 +227,54 @@
     } catch(e) {
         tbody.innerHTML = "<tr><td colspan='4'>Error: Data load nahi hua</td></tr>";
     }
+}
+// DELETE FUNCTION
+async function deleteRow(rowIndex, targetSheet) {
+    if (confirm("Kya aap sach mein ise delete karna chahte hain?")) {
+        let btn = event.target;
+        btn.innerText = "Deleting...";
+        await fetch(WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "delete", rowIndex: rowIndex, targetSheet: targetSheet })
+        });
+        loadData(); // Table refresh
+    }
+}
+
+// EDIT FUNCTION - Data form mein wapas lane ke liye
+function editRow(rowIndex, targetSheet) {
+    editRowIndex = rowIndex;
+    // Yahan hum row ka data uthakar form mein daal rahe hain
+    // Note: Table ki cells se data fetch kar rahe hain
+    let row = event.target.closest("tr").cells;
+    document.getElementById('code').value = row[1].innerText;
+    document.getElementById('eng').value = row[2].innerText;
+    
+    // Save button ko "Update" bana rahe hain
+    let btn = document.getElementById('saveBtn');
+    btn.innerText = "Update Item";
+    btn.onclick = updateData; // Naya function call karein
+}
+
+// UPDATE FUNCTION
+async function updateData() {
+    let data = {
+        action: "update",
+        rowIndex: editRowIndex,
+        targetSheet: document.getElementById('storeSelect').value,
+        store: document.getElementById('storeSelect').value,
+        code: document.getElementById('code').value,
+        eng: document.getElementById('eng').value,
+        hin: document.getElementById('hin').value,
+        retail: document.getElementById('retail').value,
+        ws: document.getElementById('ws').value
+    };
+    
+    await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify(data) });
+    alert("Updated Successfully!");
+    
+    // Wapas "Save" mode mein aayein
+    location.reload(); 
 }
 
     // Load function ko window onload mein daal dein
