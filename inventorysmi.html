@@ -192,6 +192,7 @@ let editRowIndex = null; // Variable track karne ke liye ki kaunsi row edit ho r
         }
     }
 */
+    /*
     async function loadData() {
         let filter = document.getElementById('filterSelect').value;
     const tbody = document.getElementById('tableBody');
@@ -208,7 +209,7 @@ let editRowIndex = null; // Variable track karne ke liye ki kaunsi row edit ho r
             let row = result.grocery[i];
             html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>₹${row[6]}</td></tr>`;
         }
-        */
+        *
         if (filter === "All" || filter === "Grocery"){
         // loadData mein loop ke andar ye line change karein:
 for (let i = 1; i < result.grocery.length; i++) {
@@ -237,6 +238,58 @@ for (let i = 1; i < result.grocery.length; i++) {
         tbody.innerHTML = "<tr><td colspan='4'>Error: Data load nahi hua</td></tr>";
     }
 }
+    */
+    async function loadData() {
+    let filter = document.getElementById('filterSelect').value;
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
+
+    try {
+        let res = await fetch(WEB_APP_URL);
+        let result = await res.json();
+        
+        let html = "";
+
+        // GROCERY ka Data
+        if (filter === "All" || filter === "Grocery") {
+            for (let i = 1; i < result.grocery.length; i++) {
+                let row = result.grocery[i];
+                html += `<tr>
+                    <td>${row[0]}</td>
+                    <td>${row[1]}</td>
+                    <td>${row[2]}</td>
+                    <td>₹${row[6]}</td>
+                    <td>
+                        <button onclick="editRow(${i + 1}, 'Grocery')">✏️</button>
+                        <button onclick="deleteRow(${i + 1}, 'Grocery')" style="background:red; color:white;">❌</button>
+                    </td>
+                </tr>`;
+            }
+        }
+
+        // HARDWARE ka Data
+        if (filter === "All" || filter === "Hardware") {
+            for (let i = 1; i < result.hardware.length; i++) {
+                let row = result.hardware[i];
+                html += `<tr>
+                    <td>${row[0]}</td>
+                    <td>${row[1]}</td>
+                    <td>${row[2]}</td>
+                    <td>₹${row[6]}</td>
+                    <td>
+                        <button onclick="editRow(${i + 1}, 'Hardware')">✏️</button>
+                        <button onclick="deleteRow(${i + 1}, 'Hardware')" style="background:red; color:white;">❌</button>
+                    </td>
+                </tr>`;
+            }
+        }
+        
+        tbody.innerHTML = html;
+    } catch(e) {
+        tbody.innerHTML = "<tr><td colspan='5'>Error: " + e.message + "</td></tr>";
+    }
+}
+
 // DELETE FUNCTION
 async function deleteRow(rowIndex, targetSheet) {
     if (confirm("Kya aap sach mein ise delete karna chahte hain?")) {
