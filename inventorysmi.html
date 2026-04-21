@@ -57,7 +57,7 @@
 </div>
 <script>
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbySot106UnHArrJF-LDx5O5z_rMoSqtwWAlDzZujVLijAHTWZNQa5nDYPfT38Bdd9m1/exec";
-
+/*
     async function submitData() {
         const btn = document.getElementById('saveBtn');
         // Validation check
@@ -98,7 +98,47 @@
             btn.disabled = false;
         }
     }
+    */
+    async function submitData() {
+    const btn = document.getElementById('saveBtn');
+    let code = document.getElementById('code').value;
+    if (!code) { alert("Code daalna zaroori hai!"); return; }
+
+    btn.innerText = "Saving...";
+    btn.disabled = true;
+
+    // Yahan hum 'targetSheet' add kar rahe hain
+    let selectedStore = document.getElementById('storeSelect').value; 
     
+    let data = {
+        targetSheet: selectedStore, // Ye "Grocery" ya "Hardware" hoga
+        store: selectedStore,
+        code: code,
+        eng: document.getElementById('eng').value,
+        hin: document.getElementById('hin').value,
+        cat: document.getElementById('cat').value,
+        unit: document.getElementById('unit').value,
+        retail: document.getElementById('retail').value,
+        ws: document.getElementById('ws').value
+    };
+    
+    try {
+        await fetch(WEB_APP_URL, { 
+            method: "POST", 
+            body: JSON.stringify(data) // 'no-cors' hata dein agar aapko response check karna hai
+        });
+        alert("Saved Successfully!");
+        // Clear form
+        document.getElementById('code').value = "";
+        loadData(); // Table refresh
+    } catch(e) {
+        alert("Error hua: " + e);
+    } finally {
+        btn.innerText = "Save Product";
+        btn.disabled = false;
+    }
+}
+
     // Page load hote hi check karein ki kya password pehle daal diya tha?
     window.onload = function() {
         if (sessionStorage.getItem("isLoggedIn") === "true") {
@@ -147,3 +187,5 @@
     // Load function ko window onload mein daal dein
     window.onload = loadData;
 </script>
+</body>
+</html>
