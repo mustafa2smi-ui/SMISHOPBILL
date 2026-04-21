@@ -43,6 +43,11 @@
 
 <div class="card" style="margin-top:20px;">
     <h3>Inventory List</h3>
+    <select id="filterSelect" onchange="loadData()">
+    <option value="All">Sabhi (All)</option>
+    <option value="Grocery">Sirf Grocery</option>
+    <option value="Hardware">Sirf Hardware</option>
+    </select>
     <div style="overflow-x:auto;"> <table id="invTable" style="width:100%; border-collapse: collapse; font-size: 13px;">
             <thead>
                 <tr style="background:#eee;">
@@ -188,6 +193,7 @@ let editRowIndex = null; // Variable track karne ke liye ki kaunsi row edit ho r
     }
 */
     async function loadData() {
+        let filter = document.getElementById('filterSelect').value;
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
 
@@ -203,6 +209,7 @@ let editRowIndex = null; // Variable track karne ke liye ki kaunsi row edit ho r
             html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>₹${row[6]}</td></tr>`;
         }
         */
+        if (filter === "All" || filter === "Grocery"){
         // loadData mein loop ke andar ye line change karein:
 for (let i = 1; i < result.grocery.length; i++) {
             let row = result.grocery[i];
@@ -217,12 +224,14 @@ for (let i = 1; i < result.grocery.length; i++) {
     </td>
 </tr>`;
     }
+        }
+        if (filter === "All" || filter === "Hardware") {
         // Hardware ka data (Sheet3)
         for (let i = 1; i < result.hardware.length; i++) {
             let row = result.hardware[i];
             html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>₹${row[6]}</td></tr>`;
         }
-        
+        }
         tbody.innerHTML = html;
     } catch(e) {
         tbody.innerHTML = "<tr><td colspan='4'>Error: Data load nahi hua</td></tr>";
