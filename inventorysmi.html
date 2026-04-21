@@ -310,17 +310,20 @@ for (let i = 1; i < result.grocery.length; i++) {
         if (filter === "All" || filter === "Grocery") {
             for (let i = 1; i < groceryData.length; i++) {
                 let row = groceryData[i];
-                html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>₹${row[6]}</td>
+                html += `<tr>
+    <td>${row[0]}</td> <td>${row[1]}</td> <td>${row[2]}</td> <td>${row[6]}</td> <td>${row[7]}</td>
                 <td><button onclick="editRow(${i + 1}, 'Grocery')">✏️</button>
                     <button onclick="deleteRow(${i + 1}, 'Grocery')" style="background:red; color:white;">❌</button></td></tr>`;
             }
         }
+// Table ki row banate waqt sahi column index use karein
 
         // HARDWARE
         if (filter === "All" || filter === "Hardware") {
             for (let i = 1; i < hardwareData.length; i++) {
                 let row = hardwareData[i];
-                html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>₹${row[6]}</td>
+                html += `<tr>
+    <td>${row[0]}</td> <td>${row[1]}</td> <td>${row[2]}</td> <td>${row[6]}</td> <td>${row[7]}</td>
                 <td><button onclick="editRow(${i + 1}, 'Hardware')">✏️</button>
                     <button onclick="deleteRow(${i + 1}, 'Hardware')" style="background:red; color:white;">❌</button></td></tr>`;
             }
@@ -345,7 +348,7 @@ async function deleteRow(rowIndex, targetSheet) {
         loadData(); // Table refresh
     }
 }
-
+/*
 // EDIT FUNCTION - Data form mein wapas lane ke liye
 function editRow(rowIndex, targetSheet) {
     editRowIndex = rowIndex;
@@ -359,6 +362,31 @@ function editRow(rowIndex, targetSheet) {
     let btn = document.getElementById('saveBtn');
     btn.innerText = "Update Item";
     btn.onclick = updateData; // Naya function call karein
+}
+*/
+    async function editRow(rowIndex, targetSheet) {
+    // 1. Pehle pura data fetch karo taaki sahi index mile
+    let res = await fetch(WEB_APP_URL);
+    let result = await res.json();
+    
+    // 2. Data dhundo (Grocery ya Hardware)
+    let dataList = (targetSheet === "Hardware") ? result.hardware : result.grocery;
+    let row = dataList[rowIndex - 1]; // -1 kyunki array 0 se start hota hai
+    
+    // 3. Form mein sahi-sahi fill karo
+    document.getElementById('storeSelect').value = row[0];
+    document.getElementById('code').value = row[1];
+    document.getElementById('eng').value = row[2];
+    document.getElementById('hin').value = row[3];
+    document.getElementById('cat').value = row[4];
+    document.getElementById('unit').value = row[5];
+    document.getElementById('retail').value = row[6];
+    document.getElementById('ws').value = row[7];
+    
+    // 4. Save button ko Update mode mein daalo
+    editRowIndex = rowIndex;
+    document.getElementById('saveBtn').innerText = "Update Item";
+    document.getElementById('saveBtn').onclick = updateData;
 }
 
 // UPDATE FUNCTION
