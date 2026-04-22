@@ -1,104 +1,225 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    input, select { display: block; width: 100%; margin: 10px 0; padding: 8px; }
-    button { padding: 10px; cursor: pointer; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-  </style>
+<title>SMI Inventory</title>
+
+<style>
+body {
+  font-family: Arial;
+  padding: 10px;
+  background: #f5f5f5;
+}
+
+h2 {
+  text-align: center;
+  color: green;
+}
+
+.container {
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #ccc;
+}
+
+input, select {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0;
+}
+
+button {
+  padding: 8px 12px;
+  margin: 5px 2px;
+  border: none;
+  background: green;
+  color: white;
+  border-radius: 5px;
+}
+
+.deleteBtn {
+  background: red;
+}
+
+.updateBtn {
+  background: orange;
+}
+
+table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  text-align: center;
+}
+</style>
+
 </head>
 <body>
-  <h2>SMI Grocery & Hardware Inventory Entry/Edit Webapp</h2>
-  <select id="storeSelect"><option value="Sheet1">Grocery</option><option value="Sheet3">Hardware</option></select>
-  <input type="text" id="code" placeholder="Code">
-  <input type="text" id="eng" placeholder="Eng Name">
-  <input type="text" id="hin" placeholder="Hin Name">
-  <input type="text" id="cat" placeholder="Category">
-  <input type="text" id="unit" placeholder="Unit">
-  <input type="number" id="retail" placeholder="Retail">
-  <input type="number" id="ws" placeholder="Wholesale">
-  <button id="saveBtn" onclick="saveItem()">Submit</button>
 
-  <hr>
-  <button onclick="loadTable()">Refresh Table</button>
-  <table id="invTable"><thead><tr><th>Code</th><th>Eng</th><th>Hin</th><th>Retail</th><th>WS</th><th>Action</th></tr></thead><tbody id="tableBody"></tbody></table>
+<div class="container">
 
-  <script>
-    <select id="storeSelect">
-    <option value="Sheet1">Grocery (Sheet1)</option>
-    <option value="Sheet3">Hardware (Sheet3)</option>
+<h2>SMI Grocery & Hardware Inventory Entry/Edit Webapp</h2>
+
+<!-- SELECT STORE -->
+<select id="store">
+  <option value="sheet1">Grocery</option>
+  <option value="sheet2">Hardware</option>
 </select>
-<input type="text" id="code" placeholder="Code">
-<input type="text" id="eng" placeholder="Eng Name">
-<input type="text" id="hin" placeholder="Hin Name">
-<input type="text" id="cat" placeholder="Category">
-<input type="text" id="unit" placeholder="Unit">
-<input type="number" id="retail" placeholder="Retail">
-<input type="number" id="ws" placeholder="Wholesale">
-<button id="saveBtn" onclick="saveItem()">Submit</button>
+
+<input id="code" placeholder="Code">
+<input id="eng" placeholder="Eng Name">
+<input id="hin" placeholder="Hin Name">
+<input id="cat" placeholder="Category">
+<input id="unit" placeholder="Unit">
+<input id="retail" placeholder="Retail">
+<input id="wholesale" placeholder="Wholesale">
+
+<button onclick="submitData()">Submit / Update</button>
+
+<hr>
+
+<h3>Live Table</h3>
+<button onclick="loadData()">Refresh</button>
+
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Eng</th>
+<th>Hin</th>
+<th>Retail</th>
+<th>Wholesale</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="tbody"></tbody>
+</table>
+
+</div>
 
 <script>
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw2GrN9rKVF_RZXUkPILSypyKFSe00EudDDyCPjzTqOWsesWAs6n1B6-VU2fKWxx5ZbYA/exec";
-  let editRow = null;
-  let allData = { sheet1: [], sheet3: [] };
 
-  async function loadTable() {
-    let res = await fetch(WEB_APP_URL);
-    allData = await res.json();
-    let html = "";
-    // Sheet1 (i+2 isliye kyunki header 1 pe hai aur array 0 se shuru hota hai)
-    allData.sheet1.slice(1).forEach((r, i) => html += rowHtml(r, i+2, 'Sheet1'));
-    allData.sheet3.slice(1).forEach((r, i) => html += rowHtml(r, i+2, 'Sheet3'));
-    document.getElementById('tableBody').innerHTML = html;
-  }
+const API_URL = "https://script.google.com/macros/s/AKfycbw6MUqfpMw1wyK8-WAT_mhDbXSVjZ-fk6npHXTx47-FcdoFubyasFPmQu5t4ceV8fJ4ug/exec";
 
-  function rowHtml(r, idx, sheet) {
-    return `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[5]}</td><td>${r[6]}</td>
-            <td><button onclick="edit(${idx}, '${sheet}')">✏️</button><button onclick="del(${idx}, '${sheet}')">❌</button></td></tr>`;
-  }
+// LOAD DATA
+function loadData() {
+  let store = document.getElementById("store").value;
 
-  async function saveItem() {
-    let data = {
-      action: editRow ? "update" : "add",
-      rowIndex: editRow,
-      targetSheet: document.getElementById('storeSelect').value,
-      code: document.getElementById('code').value,
-      eng: document.getElementById('eng').value,
-      hin: document.getElementById('hin').value,
-      cat: document.getElementById('cat').value,
-      unit: document.getElementById('unit').value,
-      retail: document.getElementById('retail').value,
-      ws: document.getElementById('ws').value
-    };
-    await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify(data) });
-    alert("Saved!");
-    editRow = null;
-    document.getElementById('saveBtn').innerText = "Submit";
-    loadTable();
-  }
+  fetch(API_URL + "?store=" + store)
+  .then(res => res.json())
+  .then(data => {
 
-  function edit(idx, sheet) {
-    let data = (sheet === "Sheet1") ? allData.sheet1 : allData.sheet3;
-    let r = data[idx-1];
-    document.getElementById('code').value = r[0];
-    document.getElementById('eng').value = r[1];
-    document.getElementById('hin').value = r[2];
-    document.getElementById('cat').value = r[3];
-    document.getElementById('unit').value = r[4];
-    document.getElementById('retail').value = r[5];
-    document.getElementById('ws').value = r[6];
-    editRow = idx;
-    document.getElementById('saveBtn').innerText = "Update";
-  }
+    let tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
 
-  async function del(idx, sheet) {
-    if(confirm("Delete?")) {
-      await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "delete", rowIndex: idx, targetSheet: sheet }) });
-      loadTable();
-    }
+    data.forEach(item => {
+
+      tbody.innerHTML += `
+      <tr>
+        <td>${item.code}</td>
+        <td>${item.eng}</td>
+        <td>${item.hin}</td>
+        <td>${item.retail}</td>
+        <td>${item.wholesale}</td>
+        <td>
+          <button class="updateBtn" onclick='editData(${JSON.stringify(item)})'>Edit</button>
+          <button class="deleteBtn" onclick='deleteData(${item.row})'>Delete</button>
+        </td>
+      </tr>
+      `;
+    });
+  });
+}
+
+
+// SUBMIT / UPDATE
+let editRow = null;
+
+function submitData() {
+
+  let data = {
+    store: document.getElementById("store").value,
+    code: document.getElementById("code").value,
+    eng: document.getElementById("eng").value,
+    hin: document.getElementById("hin").value,
+    cat: document.getElementById("cat").value,
+    unit: document.getElementById("unit").value,
+    retail: document.getElementById("retail").value,
+    wholesale: document.getElementById("wholesale").value,
+    row: editRow,
+    action: editRow ? "update" : "add"
+  };
+
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(data)
+  })
+  .then(() => {
+    alert("Saved");
+    clearForm();
+    loadData();
+  });
+}
+
+
+// EDIT
+function editData(item) {
+  document.getElementById("code").value = item.code;
+  document.getElementById("eng").value = item.eng;
+  document.getElementById("hin").value = item.hin;
+  document.getElementById("cat").value = item.cat;
+  document.getElementById("unit").value = item.unit;
+  document.getElementById("retail").value = item.retail;
+  document.getElementById("wholesale").value = item.wholesale;
+
+  editRow = item.row;
+}
+
+
+// DELETE
+function deleteData(row) {
+  if(confirm("Delete item?")) {
+
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "delete",
+        row: row,
+        store: document.getElementById("store").value
+      })
+    })
+    .then(() => {
+      alert("Deleted");
+      loadData();
+    });
   }
-  </script>
+}
+
+
+// CLEAR FORM
+function clearForm() {
+  document.getElementById("code").value = "";
+  document.getElementById("eng").value = "";
+  document.getElementById("hin").value = "";
+  document.getElementById("cat").value = "";
+  document.getElementById("unit").value = "";
+  document.getElementById("retail").value = "";
+  document.getElementById("wholesale").value = "";
+
+  editRow = null;
+}
+
+
+// INIT
+loadData();
+
+</script>
+
 </body>
 </html>
