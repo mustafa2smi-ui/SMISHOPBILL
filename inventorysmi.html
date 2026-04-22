@@ -1,3 +1,4 @@
+<!--
 <!DOCTYPE html>
 <html>
 <head>
@@ -65,7 +66,7 @@ th, td {
 
 <h2>SMI Grocery & Hardware Inventory Entry/Edit Webapp</h2>
 
-<!-- SELECT STORE -->
+<!-- SELECT STORE --
 <select id="store">
   <option value="sheet1">Grocery</option>
   <option value="sheet2">Hardware</option>
@@ -102,10 +103,146 @@ th, td {
 </table>
 
 </div>
+-->
+<!DOCTYPE html>
+<html>
+<head>
+<title>SMI Inventory</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #eef2f3;
+  padding: 10px;
+}
+
+.container {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+
+h2 {
+  text-align: center;
+  color: green;
+  font-weight: bold;
+}
+
+/* INPUT STYLE */
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin: 6px 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: green;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+}
+
+/* BUTTON STYLE */
+button {
+  padding: 12px;
+  margin-top: 8px;
+  width: 100%;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.submitBtn {
+  background: green;
+  color: white;
+}
+
+.refreshBtn {
+  background: #2196f3;
+  color: white;
+}
+
+.updateBtn {
+  background: orange;
+  color: white;
+  padding: 5px 8px;
+}
+
+.deleteBtn {
+  background: red;
+  color: white;
+  padding: 5px 8px;
+}
+
+/* TABLE */
+table {
+  width: 100%;
+  margin-top: 15px;
+  border-collapse: collapse;
+}
+
+th {
+  background: green;
+  color: white;
+  padding: 8px;
+}
+
+td {
+  padding: 6px;
+  border: 1px solid #ddd;
+  font-weight: bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>SMI Grocery & Hardware Inventory Entry/Edit Webapp</h2>
+
+<select id="store">
+  <option value="Sheet1">Grocery</option>
+  <option value="Sheet2">Hardware</option>
+</select>
+
+<input id="code" placeholder="Code">
+<input id="eng" placeholder="English Name">
+<input id="hin" placeholder="Hindi Name">
+<input id="cat" placeholder="Category">
+<input id="unit" placeholder="Unit">
+<input id="retail" placeholder="Retail Price">
+<input id="wholesale" placeholder="Wholesale Price">
+
+<button class="submitBtn" onclick="submitData()">Submit / Update</button>
+
+<hr>
+
+<button class="refreshBtn" onclick="loadData()">Refresh Data</button>
+
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Eng</th>
+<th>Hin</th>
+<th>Retail</th>
+<th>Wholesale</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="tbody"></tbody>
+</table>
+
+</div>
 
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbw6MUqfpMw1wyK8-WAT_mhDbXSVjZ-fk6npHXTx47-FcdoFubyasFPmQu5t4ceV8fJ4ug/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx9uN_zVpWNqdQabmrgtl5cN5f_plpFknj_pFUwYJ8nXQ_FosrJggjizfWhtnGeUSI01A/exec";
 
 // LOAD DATA
 function loadData() {
@@ -121,23 +258,23 @@ function loadData() {
     data.forEach(item => {
 
       tbody.innerHTML += `
-      <tr>
-        <td>${item.code}</td>
-        <td>${item.eng}</td>
-        <td>${item.hin}</td>
-        <td>${item.retail}</td>
-        <td>${item.wholesale}</td>
-        <td>
-          <button class="updateBtn" onclick='editData(${JSON.stringify(item)})'>Edit</button>
-          <button class="deleteBtn" onclick='deleteData(${item.row})'>Delete</button>
-        </td>
-      </tr>
-      `;
+<tr>
+  <td>${item.code}</td>
+  <td>${item.eng}</td>
+  <td>${item.hin}</td>
+  <td>${item.retail}</td>
+  <td>${item.wholesale}</td>
+  <td>
+    <button onclick='editData(${JSON.stringify(item)})'>Edit</button>
+    <button onclick='deleteData("${item.code}")'>Delete</button>
+  </td>
+</tr>
+`;
     });
   });
 }
 
-
+/*
 // SUBMIT / UPDATE
 let editRow = null;
 
@@ -166,7 +303,48 @@ function submitData() {
     loadData();
   });
 }
+  */
+  function submitData() {
 
+  let data = {
+    store: store.value,
+    code: code.value,
+    eng: eng.value,
+    hin: hin.value,
+    cat: cat.value,
+    unit: unit.value,
+    retail: retail.value,
+    wholesale: wholesale.value,
+    action: "add"
+  };
+
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(data)
+  })
+  .then(res => res.text())
+  .then(msg => {
+
+    if(msg.includes("exists")) {
+      data.action = "update";
+
+      fetch(API_URL, {
+        method: "POST",
+        body: JSON.stringify(data)
+      })
+      .then(() => {
+        alert("Updated");
+        loadData();
+      });
+
+    } else {
+      alert("Added");
+      loadData();
+    }
+
+  });
+}
+/*
 
 // EDIT
 function editData(item) {
@@ -180,8 +358,17 @@ function editData(item) {
 
   editRow = item.row;
 }
-
-
+*/
+  function editData(item) {
+  code.value = item.code;
+  eng.value = item.eng;
+  hin.value = item.hin;
+  cat.value = item.cat;
+  unit.value = item.unit;
+  retail.value = item.retail;
+  wholesale.value = item.wholesale;
+}
+/*
 // DELETE
 function deleteData(row) {
   if(confirm("Delete item?")) {
@@ -200,7 +387,24 @@ function deleteData(row) {
     });
   }
 }
+*/
+  function deleteData(code) {
+  if(confirm("Delete item?")) {
 
+    fetch(API_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "delete",
+        code: code,
+        store: store.value
+      })
+    })
+    .then(() => {
+      alert("Deleted");
+      loadData();
+    });
+  }
+}
 
 // CLEAR FORM
 function clearForm() {
