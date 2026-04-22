@@ -1,417 +1,89 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        :root { --primary: #3498db; --bg: #f4f7f6; }
-        body { font-family: sans-serif; background: var(--bg); padding: 10px; }
-        .card { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px; }
-        input { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        tr:nth-child(even) { background: #f9f9f9; }
-    </style>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    input, select { display: block; width: 100%; margin: 10px 0; padding: 8px; }
+    button { padding: 10px; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+  </style>
 </head>
 <body>
-<div id="passwordOverlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-    <h3>Inventory Access</h3>
-    <input type="password" id="passInput" placeholder="Password daaliye" style="padding:10px; margin-bottom:10px;">
-    <button onclick="checkPass()" style="padding:10px 20px;">Open Inventory</button>
-</div>
+  <h2>SMI Grocery & Hardware Inventory Entry/Edit Webapp</h2>
+  <select id="storeSelect"><option value="Sheet1">Grocery</option><option value="Sheet3">Hardware</option></select>
+  <input type="text" id="code" placeholder="Code">
+  <input type="text" id="eng" placeholder="Eng Name">
+  <input type="text" id="hin" placeholder="Hin Name">
+  <input type="text" id="cat" placeholder="Category">
+  <input type="text" id="unit" placeholder="Unit">
+  <input type="number" id="retail" placeholder="Retail">
+  <input type="number" id="ws" placeholder="Wholesale">
+  <button id="saveBtn" onclick="saveItem()">Submit</button>
 
-<div class="card">
-    <h3 style="margin-top:0;">Inventory Entry</h3>
-    <select id="storeSelect">
-        <option value="Grocery">Grocery Store</option>
-        <option value="Hardware">Hardware Store</option>
-    </select>
-    <input type="text" id="code" placeholder="Code">
-    <input type="text" id="eng" placeholder="Item Name (English)">
-    <input type="text" id="hin" placeholder="Item Name (Hindi)">
-    <input type="text" id="cat" placeholder="Category">
-    <input type="text" id="unit" placeholder="Unit">
-    <input type="number" id="retail" placeholder="Retail Price">
-    <input type="number" id="ws" placeholder="Wholesale Price">
-    <button id="saveBtn" onclick="submitData()" style="background:#2ecc71; color:white;">Save Product</button>
-</div>
-    <div style="margin: 10px 0;">
-    <button onclick="loadData()" style="background:#3498db; color:white; padding:8px 15px; border:none; border-radius:5px;">
-        🔄 Refresh Table
-    </button>
-</div>
+  <hr>
+  <button onclick="loadTable()">Refresh Table</button>
+  <table id="invTable"><thead><tr><th>Code</th><th>Eng</th><th>Hin</th><th>Retail</th><th>WS</th><th>Action</th></tr></thead><tbody id="tableBody"></tbody></table>
 
-<div class="card" style="margin-top:20px;">
-    <h3>Inventory List</h3>
-    <select id="filterSelect" onchange="loadData()">
-    <option value="All">Sabhi (All)</option>
-    <option value="Grocery">Sirf Grocery</option>
-    <option value="Hardware">Sirf Hardware</option>
-    </select>
-    <div style="overflow-x:auto;"> <table id="invTable" style="width:100%; border-collapse: collapse; font-size: 13px;">
-            <thead>
-                <tr style="background:#eee;">
-                    <th>Store</th><th>Code</th><th>Name</th><th>Retail</th>
-                </tr>
+  <script>
+    let editRow = null;
+    let allData = { grocery: [], hardware: [] };
 
-            </thead>
-            <tbody id="tableBody">
-                </tbody>
-        </table>
-    </div>
-</div>
-<script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwM_YQcpWM3n4st_F8E5nw0Bksf8WYT9Y_U8N0kA7SlJMHblUjrw2LvIq0j25xkvAts-g/exec";
-let editRowIndex = null; // Variable track karne ke liye ki kaunsi row edit ho rahi hai
-
-
-    /*
-    async function submitData() {
-        const btn = document.getElementById('saveBtn');
-        // Validation check
-        let code = document.getElementById('code').value;
-        if (!code) { alert("Code daalna zaroori hai!"); return; }
-
-        btn.innerText = "Saving...";
-        btn.disabled = true;
-
-        let data = {
-            store: document.getElementById('storeSelect').value,
-            code: code,
-            eng: document.getElementById('eng').value,
-            hin: document.getElementById('hin').value,
-            cat: document.getElementById('cat').value,
-            unit: document.getElementById('unit').value,
-            retail: document.getElementById('retail').value,
-            ws: document.getElementById('ws').value
-        };
-        
-        try {
-            await fetch(WEB_APP_URL, { 
-                method: "POST", 
-                mode: 'no-cors', 
-                body: JSON.stringify(data) 
-            });
-            alert("Saved Successfully!");
-            // Form clear karna
-            document.getElementById('code').value = "";
-            document.getElementById('eng').value = "";
-            document.getElementById('hin').value = "";
-            document.getElementById('retail').value = "";
-            document.getElementById('ws').value = "";
-        } catch(e) {
-            alert("Error hua!");
-        } finally {
-            btn.innerText = "Save Product";
-            btn.disabled = false;
-        }
+    async function loadTable() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = "Loading...";
+      let data = await google.script.run.withSuccessHandler(res => {
+        allData = res;
+        let html = "";
+        // Grocery Data
+        res.grocery.slice(1).forEach((r, i) => html += rowHtml(r, i+2, 'Sheet1'));
+        // Hardware Data
+        res.hardware.slice(1).forEach((r, i) => html += rowHtml(r, i+2, 'Sheet3'));
+        tbody.innerHTML = html;
+      }).getInventoryData();
     }
-    */
-    async function submitData() {
-    const btn = document.getElementById('saveBtn');
-    let code = document.getElementById('code').value;
-    if (!code) { alert("Code daalna zaroori hai!"); return; }
 
-    btn.innerText = "Saving...";
-    btn.disabled = true;
+    function rowHtml(r, idx, sheet) {
+      return `<tr><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[6]}</td><td>${r[7]}</td>
+              <td><button onclick="edit(${idx}, '${sheet}')">✏️</button><button onclick="del(${idx}, '${sheet}')">❌</button></td></tr>`;
+    }
 
-    // Yahan hum 'targetSheet' add kar rahe hain
-    let selectedStore = document.getElementById('storeSelect').value; 
-    
-    let data = {
-        targetSheet: selectedStore, // Ye "Grocery" ya "Hardware" hoga
-        store: selectedStore,
-        code: code,
+    async function saveItem() {
+      let data = {
+        action: editRow ? "update" : "add",
+        rowIndex: editRow,
+        targetSheet: document.getElementById('storeSelect').value,
+        store: document.getElementById('storeSelect').value,
+        code: document.getElementById('code').value,
         eng: document.getElementById('eng').value,
         hin: document.getElementById('hin').value,
         cat: document.getElementById('cat').value,
         unit: document.getElementById('unit').value,
         retail: document.getElementById('retail').value,
         ws: document.getElementById('ws').value
-    };
-    
-    try {
-        await fetch(WEB_APP_URL, { 
-            method: "POST", 
-            body: JSON.stringify(data) // 'no-cors' hata dein agar aapko response check karna hai
-        });
-        alert("Saved Successfully!");
-        // Clear form
-        document.getElementById('code').value = "";
-        loadData(); // Table refresh
-    } catch(e) {
-        alert("Error hua: " + e);
-    } finally {
-        btn.innerText = "Save Product";
-        btn.disabled = false;
+      };
+      await google.script.run.withSuccessHandler(() => { alert("Done!"); loadTable(); }).processData(data);
     }
-}
 
-    // Page load hote hi check karein ki kya password pehle daal diya tha?
-    window.onload = function() {
-        if (sessionStorage.getItem("isLoggedIn") === "true") {
-            document.getElementById('passwordOverlay').style.display = 'none';
-        }
-        loadData(); // Data load karein
-    };
-
-
-    function checkPass() {
-        let pass = document.getElementById('passInput').value;
-        // Yahan apna password rakhein (Example: 1234)
-        if (pass === "smi2026") { 
-            document.getElementById('passwordOverlay').style.display = 'none';
-        } else {
-            alert("Galat Password!");
-        }
+    function edit(idx, sheet) {
+      let data = (sheet === "Sheet1") ? allData.grocery : allData.hardware;
+      let r = data[idx-1];
+      document.getElementById('code').value = r[1];
+      document.getElementById('eng').value = r[2];
+      document.getElementById('hin').value = r[3];
+      document.getElementById('cat').value = r[4];
+      document.getElementById('unit').value = r[5];
+      document.getElementById('retail').value = r[6];
+      document.getElementById('ws').value = r[7];
+      editRow = idx;
+      document.getElementById('saveBtn').innerText = "Update";
     }
-/*
-    // Ye function page load hote hi aur entry save hone ke baad chalega
-    async function loadData() {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
 
-        try {
-            let res = await fetch(WEB_APP_URL);
-            let data = await res.json();
-            
-            let html = "";
-            // Header skip karne ke liye i=1 se start kiya
-            for (let i = 1; i < data.length; i++) {
-                let row = data[i];
-                html += `<tr>
-                    <td>${row[0]}</td>
-                    <td>${row[1]}</td>
-                    <td>${row[2]}</td>
-                    <td>₹${row[6]}</td>
-                </tr>`;
-            }
-            tbody.innerHTML = html;
-        } catch(e) {
-            tbody.innerHTML = "<tr><td colspan='4'>Error loading data</td></tr>";
-        }
+    function del(idx, sheet) {
+      if(confirm("Delete?")) google.script.run.withSuccessHandler(loadTable).processData({action: "delete", rowIndex: idx, targetSheet: sheet});
     }
-*/
-    /*
-    async function loadData() {
-        let filter = document.getElementById('filterSelect').value;
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = "<tr><td colspan='4'>Loading...</td></tr>";
 
-    try {
-        let res = await fetch(WEB_APP_URL);
-        let result = await res.json(); // Ab yahan object milega {grocery: [], hardware: []}
-        
-        let html = "";
-        
-       /* // Grocery ka data (Sheet1)
-        for (let i = 1; i < result.grocery.length; i++) {
-            let row = result.grocery[i];
-            html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>₹${row[6]}</td></tr>`;
-        }
-        *
-        if (filter === "All" || filter === "Grocery"){
-        // loadData mein loop ke andar ye line change karein:
-for (let i = 1; i < result.grocery.length; i++) {
-            let row = result.grocery[i];
-        html += `<tr>
-    <td>${row[0]}</td>
-    <td>${row[1]}</td>
-    <td>${row[2]}</td>
-    <td>₹${row[6]}</td>
-    <td>
-        <button onclick="editRow(${i + 1}, '${filter}')">✏️</button>
-        <button onclick="deleteRow(${i + 1}, '${filter}')" style="background:red; color:white;">❌</button>
-    </td>
-</tr>`;
-    }
-        }
-        if (filter === "All" || filter === "Hardware") {
-        // Hardware ka data (Sheet3)
-        for (let i = 1; i < result.hardware.length; i++) {
-            let row = result.hardware[i];
-            html += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td>₹${row[6]}</td></tr>`;
-        }
-        }
-        tbody.innerHTML = html;
-    } catch(e) {
-        tbody.innerHTML = "<tr><td colspan='4'>Error: Data load nahi hua</td></tr>";
-    }
-}
-    */
-    /*
-    async function loadData() {
-    let filter = document.getElementById('filterSelect').value;
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
-
-    try {
-        let res = await fetch(WEB_APP_URL);
-        let result = await res.json();
-        
-        let html = "";
-
-        // GROCERY ka Data
-        if (filter === "All" || filter === "Grocery") {
-            for (let i = 1; i < result.grocery.length; i++) {
-                let row = result.grocery[i];
-                html += `<tr>
-                    <td>${row[0]}</td>
-                    <td>${row[1]}</td>
-                    <td>${row[2]}</td>
-                    <td>₹${row[6]}</td>
-                    <td>
-                        <button onclick="editRow(${i + 1}, 'Grocery')">✏️</button>
-                        <button onclick="deleteRow(${i + 1}, 'Grocery')" style="background:red; color:white;">❌</button>
-                    </td>
-                </tr>`;
-            }
-        }
-
-        // HARDWARE ka Data
-        if (filter === "All" || filter === "Hardware") {
-            for (let i = 1; i < result.hardware.length; i++) {
-                let row = result.hardware[i];
-                html += `<tr>
-                    <td>${row[0]}</td>
-                    <td>${row[1]}</td>
-                    <td>${row[2]}</td>
-                    <td>₹${row[6]}</td>
-                    <td>
-                        <button onclick="editRow(${i + 1}, 'Hardware')">✏️</button>
-                        <button onclick="deleteRow(${i + 1}, 'Hardware')" style="background:red; color:white;">❌</button>
-                    </td>
-                </tr>`;
-            }
-        }
-        
-        tbody.innerHTML = html;
-    } catch(e) {
-        tbody.innerHTML = "<tr><td colspan='5'>Error: " + e.message + "</td></tr>";
-    }
-}
-*/
-    async function loadData() {
-    let filter = document.getElementById('filterSelect').value;
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
-
-    try {
-        let res = await fetch(WEB_APP_URL);
-        let result = await res.json();
-        
-        // Safety Check: agar data na ho toh empty array use karein
-        let groceryData = result.grocery || [];
-        let hardwareData = result.hardware || [];
-        
-        let html = "";
-
-        // GROCERY
-        if (filter === "All" || filter === "Grocery") {
-            for (let i = 1; i < groceryData.length; i++) {
-                let row = groceryData[i];
-                html += `<tr>
-    <td>${row[0]}</td> <td>${row[1]}</td> <td>${row[2]}</td> <td>${row[6]}</td> <td>${row[7]}</td>
-                <td><button onclick="editRow(${i + 1}, 'Grocery')">✏️</button>
-                    <button onclick="deleteRow(${i + 1}, 'Grocery')" style="background:red; color:white;">❌</button></td></tr>`;
-            }
-        }
-// Table ki row banate waqt sahi column index use karein
-
-        // HARDWARE
-        if (filter === "All" || filter === "Hardware") {
-            for (let i = 1; i < hardwareData.length; i++) {
-                let row = hardwareData[i];
-                html += `<tr>
-    <td>${row[0]}</td> <td>${row[1]}</td> <td>${row[2]}</td> <td>${row[6]}</td> <td>${row[7]}</td>
-                <td><button onclick="editRow(${i + 1}, 'Hardware')">✏️</button>
-                    <button onclick="deleteRow(${i + 1}, 'Hardware')" style="background:red; color:white;">❌</button></td></tr>`;
-            }
-        }
-        
-        tbody.innerHTML = html.length > 0 ? html : "<tr><td colspan='5'>Koi data nahi mila</td></tr>";
-    } catch(e) {
-        tbody.innerHTML = "<tr><td colspan='5'>Error: " + e.message + "</td></tr>";
-        console.log("Error details:", e); // Console mein error dekhein
-    }
-}
-
-// DELETE FUNCTION
-async function deleteRow(rowIndex, targetSheet) {
-    if (confirm("Kya aap sach mein ise delete karna chahte hain?")) {
-        let btn = event.target;
-        btn.innerText = "Deleting...";
-        await fetch(WEB_APP_URL, {
-            method: "POST",
-            body: JSON.stringify({ action: "delete", rowIndex: rowIndex, targetSheet: targetSheet })
-        });
-        loadData(); // Table refresh
-    }
-}
-/*
-// EDIT FUNCTION - Data form mein wapas lane ke liye
-function editRow(rowIndex, targetSheet) {
-    editRowIndex = rowIndex;
-    // Yahan hum row ka data uthakar form mein daal rahe hain
-    // Note: Table ki cells se data fetch kar rahe hain
-    let row = event.target.closest("tr").cells;
-    document.getElementById('code').value = row[1].innerText;
-    document.getElementById('eng').value = row[2].innerText;
-    
-    // Save button ko "Update" bana rahe hain
-    let btn = document.getElementById('saveBtn');
-    btn.innerText = "Update Item";
-    btn.onclick = updateData; // Naya function call karein
-}
-*/
-    async function editRow(rowIndex, targetSheet) {
-    // 1. Pehle pura data fetch karo taaki sahi index mile
-    let res = await fetch(WEB_APP_URL);
-    let result = await res.json();
-    
-    // 2. Data dhundo (Grocery ya Hardware)
-    let dataList = (targetSheet === "Hardware") ? result.hardware : result.grocery;
-    let row = dataList[rowIndex - 1]; // -1 kyunki array 0 se start hota hai
-    
-    // 3. Form mein sahi-sahi fill karo
-    document.getElementById('storeSelect').value = row[0];
-    document.getElementById('code').value = row[1];
-    document.getElementById('eng').value = row[2];
-    document.getElementById('hin').value = row[3];
-    document.getElementById('cat').value = row[4];
-    document.getElementById('unit').value = row[5];
-    document.getElementById('retail').value = row[6];
-    document.getElementById('ws').value = row[7];
-    
-    // 4. Save button ko Update mode mein daalo
-    editRowIndex = rowIndex;
-    document.getElementById('saveBtn').innerText = "Update Item";
-    document.getElementById('saveBtn').onclick = updateData;
-}
-
-// UPDATE FUNCTION
-async function updateData() {
-    let data = {
-        action: "update",
-        rowIndex: editRowIndex,
-        targetSheet: document.getElementById('storeSelect').value,
-        store: document.getElementById('storeSelect').value,
-        code: document.getElementById('code').value,
-        eng: document.getElementById('eng').value,
-        hin: document.getElementById('hin').value,
-        retail: document.getElementById('retail').value,
-        ws: document.getElementById('ws').value
-    };
-    
-    await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify(data) });
-    alert("Updated Successfully!");
-    
-    // Wapas "Save" mode mein aayein
-    location.reload(); 
-}
-
-    // Load function ko window onload mein daal dein
-    window.onload = loadData;
-</script>
+    loadTable();
+  </script>
 </body>
 </html>
