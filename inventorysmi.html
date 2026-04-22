@@ -26,64 +26,79 @@
   <table id="invTable"><thead><tr><th>Code</th><th>Eng</th><th>Hin</th><th>Retail</th><th>WS</th><th>Action</th></tr></thead><tbody id="tableBody"></tbody></table>
 
   <script>
-    let editRow = null;
-    let allData = { grocery: [], hardware: [] };
+    <select id="storeSelect">
+    <option value="Sheet1">Grocery (Sheet1)</option>
+    <option value="Sheet3">Hardware (Sheet3)</option>
+</select>
+<input type="text" id="code" placeholder="Code">
+<input type="text" id="eng" placeholder="Eng Name">
+<input type="text" id="hin" placeholder="Hin Name">
+<input type="text" id="cat" placeholder="Category">
+<input type="text" id="unit" placeholder="Unit">
+<input type="number" id="retail" placeholder="Retail">
+<input type="number" id="ws" placeholder="Wholesale">
+<button id="saveBtn" onclick="saveItem()">Submit</button>
 
-    async function loadTable() {
-      const tbody = document.getElementById('tableBody');
-      tbody.innerHTML = "Loading...";
-      let data = await google.script.run.withSuccessHandler(res => {
-        allData = res;
-        let html = "";
-        // Grocery Data
-        res.grocery.slice(1).forEach((r, i) => html += rowHtml(r, i+2, 'Sheet1'));
-        // Hardware Data
-        res.hardware.slice(1).forEach((r, i) => html += rowHtml(r, i+2, 'Sheet3'));
-        tbody.innerHTML = html;
-      }).getInventoryData();
-    }
+<script>
+  const WEB_APP_URL = "YAHAN_APNA_NEW_DEPLOYED_URL_PASTE_KAREIN";
+  let editRow = null;
+  let allData = { sheet1: [], sheet3: [] };
 
-    function rowHtml(r, idx, sheet) {
-      return `<tr><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[6]}</td><td>${r[7]}</td>
-              <td><button onclick="edit(${idx}, '${sheet}')">✏️</button><button onclick="del(${idx}, '${sheet}')">❌</button></td></tr>`;
-    }
+  async function loadTable() {
+    let res = await fetch(WEB_APP_URL);
+    allData = await res.json();
+    let html = "";
+    // Sheet1 (i+2 isliye kyunki header 1 pe hai aur array 0 se shuru hota hai)
+    allData.sheet1.slice(1).forEach((r, i) => html += rowHtml(r, i+2, 'Sheet1'));
+    allData.sheet3.slice(1).forEach((r, i) => html += rowHtml(r, i+2, 'Sheet3'));
+    document.getElementById('tableBody').innerHTML = html;
+  }
 
-    async function saveItem() {
-      let data = {
-        action: editRow ? "update" : "add",
-        rowIndex: editRow,
-        targetSheet: document.getElementById('storeSelect').value,
-        store: document.getElementById('storeSelect').value,
-        code: document.getElementById('code').value,
-        eng: document.getElementById('eng').value,
-        hin: document.getElementById('hin').value,
-        cat: document.getElementById('cat').value,
-        unit: document.getElementById('unit').value,
-        retail: document.getElementById('retail').value,
-        ws: document.getElementById('ws').value
-      };
-      await google.script.run.withSuccessHandler(() => { alert("Done!"); loadTable(); }).processData(data);
-    }
+  function rowHtml(r, idx, sheet) {
+    return `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[5]}</td><td>${r[6]}</td>
+            <td><button onclick="edit(${idx}, '${sheet}')">✏️</button><button onclick="del(${idx}, '${sheet}')">❌</button></td></tr>`;
+  }
 
-    function edit(idx, sheet) {
-      let data = (sheet === "Sheet1") ? allData.grocery : allData.hardware;
-      let r = data[idx-1];
-      document.getElementById('code').value = r[1];
-      document.getElementById('eng').value = r[2];
-      document.getElementById('hin').value = r[3];
-      document.getElementById('cat').value = r[4];
-      document.getElementById('unit').value = r[5];
-      document.getElementById('retail').value = r[6];
-      document.getElementById('ws').value = r[7];
-      editRow = idx;
-      document.getElementById('saveBtn').innerText = "Update";
-    }
-
-    function del(idx, sheet) {
-      if(confirm("Delete?")) google.script.run.withSuccessHandler(loadTable).processData({action: "delete", rowIndex: idx, targetSheet: sheet});
-    }
-
+  async function saveItem() {
+    let data = {
+      action: editRow ? "update" : "add",
+      rowIndex: editRow,
+      targetSheet: document.getElementById('storeSelect').value,
+      code: document.getElementById('code').value,
+      eng: document.getElementById('eng').value,
+      hin: document.getElementById('hin').value,
+      cat: document.getElementById('cat').value,
+      unit: document.getElementById('unit').value,
+      retail: document.getElementById('retail').value,
+      ws: document.getElementById('ws').value
+    };
+    await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify(data) });
+    alert("Saved!");
+    editRow = null;
+    document.getElementById('saveBtn').innerText = "Submit";
     loadTable();
+  }
+
+  function edit(idx, sheet) {
+    let data = (sheet === "Sheet1") ? allData.sheet1 : allData.sheet3;
+    let r = data[idx-1];
+    document.getElementById('code').value = r[0];
+    document.getElementById('eng').value = r[1];
+    document.getElementById('hin').value = r[2];
+    document.getElementById('cat').value = r[3];
+    document.getElementById('unit').value = r[4];
+    document.getElementById('retail').value = r[5];
+    document.getElementById('ws').value = r[6];
+    editRow = idx;
+    document.getElementById('saveBtn').innerText = "Update";
+  }
+
+  async function del(idx, sheet) {
+    if(confirm("Delete?")) {
+      await fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "delete", rowIndex: idx, targetSheet: sheet }) });
+      loadTable();
+    }
+  }
   </script>
 </body>
 </html>
