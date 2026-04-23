@@ -245,6 +245,7 @@ td {
 <!DOCTYPE html>
 <html>
 <head>
+  <!--
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root { --primary: #3498db; --bg: #f4f7f6; }
@@ -278,7 +279,150 @@ td {
         <tbody id="tableBody"></tbody>
     </table>
 </div>
+-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<style>
+:root { 
+  --primary: #2ecc71; 
+  --bg: #f4f7f6; 
+}
+
+/* BODY */
+body { 
+  font-family: sans-serif; 
+  background: var(--bg); 
+  padding: 10px; 
+}
+
+/* CARD STYLE */
+.container {
+  background: white; 
+  padding: 15px; 
+  border-radius: 12px; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+  margin-bottom: 15px;
+}
+
+/* TITLE */
+h2 {
+  margin-top: 0;
+  font-size: 16px;
+}
+
+/* INPUT */
+input, select {
+  width: 100%; 
+  padding: 10px; 
+  margin: 5px 0; 
+  border: 1px solid #ddd; 
+  border-radius: 8px; 
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+/* BUTTON */
+button {
+  width: 100%; 
+  padding: 12px; 
+  border: none; 
+  border-radius: 8px; 
+  font-weight: bold; 
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+.submitBtn {
+  background: var(--primary);
+  color: white;
+}
+
+.refreshBtn {
+  background: #3498db;
+  color: white;
+}
+
+.updateBtn {
+  background: orange;
+  color: white;
+  padding: 5px 8px;
+}
+
+.deleteBtn {
+  background: red;
+  color: white;
+  padding: 5px 8px;
+}
+
+/* TABLE */
+table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  margin-top: 10px; 
+  font-size: 12px; 
+}
+
+th, td { 
+  border: 1px solid #ddd; 
+  padding: 8px; 
+  text-align: left; 
+}
+
+tr:nth-child(even) { 
+  background: #f9f9f9; 
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- FORM CARD -->
+<div class="container">
+
+<h2>SMI Grocery & Hardware Inventory Entry/Edit Webapp</h2>
+
+<select id="store">
+  <option value="Sheet1">Grocery</option>
+  <option value="Sheet2">Hardware</option>
+</select>
+
+<input id="code" placeholder="Code">
+<input id="eng" placeholder="English Name">
+<input id="hin" placeholder="Hindi Name">
+<input id="cat" placeholder="Category">
+<input id="unit" placeholder="Unit">
+<input id="retail" placeholder="Retail Price">
+<input id="wholesale" placeholder="Wholesale Price">
+
+<button class="submitBtn" onclick="submitData()">Submit / Update</button>
+
+</div>
+
+<!-- TABLE CARD -->
+<div class="container">
+
+<h2>Inventory List</h2>
+
+<button class="refreshBtn" onclick="loadData()">Refresh Data</button>
+
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Eng</th>
+<th>Hin</th>
+<th>Retail</th>
+<th>Wholesale</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="tbody"></tbody>
+</table>
+
+</div>
 <script>
 
 const API_URL = "https://script.google.com/macros/s/AKfycbx9uN_zVpWNqdQabmrgtl5cN5f_plpFknj_pFUwYJ8nXQ_FosrJggjizfWhtnGeUSI01A/exec";
