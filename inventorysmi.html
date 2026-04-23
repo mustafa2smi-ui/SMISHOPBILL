@@ -517,11 +517,13 @@ function submitData() {
       })
       .then(() => {
         alert("Updated");
+        clearForm();
         loadData();
       });
 
     } else {
       alert("Added");
+      clearForm();
       loadData();
     }
 
