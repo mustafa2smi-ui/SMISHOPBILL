@@ -366,8 +366,8 @@ display: none;
         </div>
 </div>
 <script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhVdCBia25wilcarJGrsDAvM4HZxHBK3bAX_5hCsC_7OixRoKilwgxHId6eCBLDbX4hQ/exec";
-  
+  /*const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhVdCBia25wilcarJGrsDAvM4HZxHBK3bAX_5hCsC_7OixRoKilwgxHId6eCBLDbX4hQ/exec";*/
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzEEb2a9AAdVkJsXsuVYqRxahpTFkLqbp0yeVzB7-52FH0AwxBBv046tdMi-sDNCG5SOA/exec";
   let groceryInv = [], hardwareInv = [], inventory = [], cart = {};
   let mode = 'ws', selectedCat = 'All', currentStore = 'Grocery';
   let printerDevice = null;
@@ -481,6 +481,7 @@ function clearAllDrafts() {
     document.getElementById('loginPage').style.display = 'block';
     document.getElementById('loginMsg').innerText = "Logged in as: " + localStorage.getItem('khan_shop_email');
 }
+    /*
       async function handleLogin(isSilent = false) {
     const emailInput = document.getElementById('emailInput');
     const email = emailInput.value.toLowerCase().trim();
@@ -543,6 +544,41 @@ function clearAllDrafts() {
     } catch(e) {
       console.log("Offline Mode Active.");
       if(!isSilent) document.getElementById('loginMsg').innerHTML = `<span style="color:red">Net Connection Error!</span>`;
+    }
+}
+*/
+    // Function ke upar ye add karein
+function getDeviceID() {
+  let id = localStorage.getItem('khan_shop_device_id');
+  if (!id) {
+    id = 'dev_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('khan_shop_device_id', id);
+  }
+  return id;
+}
+
+// Updated handleLogin
+async function handleLogin() {
+    const email = document.getElementById('emailInput').value.toLowerCase().trim();
+    const deviceId = getDeviceID(); // Unique ID generate/fetch
+    
+    // URL mein device ID bhejein
+    const finalUrl = `${SCRIPT_URL}?email=${encodeURIComponent(email)}&device=${deviceId}`;
+    
+    try {
+      const response = await fetch(finalUrl);
+      const data = await response.json();
+
+      if(data.status === "Allow") {
+        // Login Success
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('billingPage').style.display = 'block';
+        // ... save data logic
+      } else {
+        document.getElementById('loginMsg').innerHTML = `<span style="color:red">${data.msg}</span>`;
+      }
+    } catch(e) {
+      document.getElementById('loginMsg').innerText = "Connection Error!";
     }
 }
 
