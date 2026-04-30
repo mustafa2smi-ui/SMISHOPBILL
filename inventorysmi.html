@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Product Master | POS Style Manager</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #e0eafc 0%, #cfdef3 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    /* MAIN CARD CONTAINER — fixed size, responsive fit */
+    .shop-app {
+      max-width: 1400px;
+      width: 100%;
+      height: 90vh;
+      min-height: 620px;
+      background: #ffffff;
+      border-radius: 2rem;
+      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+
+    /* HEADER */
+    .app-header {
+      background: #1e293b;
+      color: white;
+      padding: 1.2rem 1.8rem;
+      border-bottom: 1px solid #334155;
+    }
+
+    .app-header h1 {
+      font-size: 1.7rem;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .app-header h1:before {
+      content: "📦";
+      font-size: 1.8rem;
+    }
+
+    .sub {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+
+    /* PRODUCT LIST AREA — scrollable, top shows items */
+    .product-list-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.2rem 1.5rem;
+      background: #f8fafc;
+      scroll-behavior: smooth;
+    }
+
+    /* product cards grid */
+    .products-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 1.2rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      border: 1px solid #e2e8f0;
+      padding: 1rem 1.2rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .product-card:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      background: #ffffff;
+    }
+
+    /* product info block */
+    .product-info {
+      flex: 3;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      align-items: baseline;
+    }
+
+    .info-field {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      font-size: 0.85rem;
+      background: #f1f5f9;
+      padding: 4px 12px;
+      border-radius: 40px;
+    }
+
+    .info-field strong {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .info-field span {
+      color: #1e293b;
+      font-weight: 500;
+    }
+
+    .product-code {
+      font-weight: 700;
+      background: #eef2ff;
+      color: #1e40af;
+    }
+
+    .price-tag {
+      background: #e6f7ec;
+    }
+
+    .price-tag span {
+      color: #15803d;
+      font-weight: 700;
+    }
+
+    /* action buttons */
+    .product-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-icon {
+      border: none;
+      background: #f1f5f9;
+      padding: 8px 14px;
+      border-radius: 40px;
+      font-weight: 500;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #1e293b;
+    }
+
+    .btn-icon.edit:hover {
+      background: #e0e7ff;
+      color: #1e3a8a;
+      transform: scale(0.97);
+    }
+
+    .btn-icon.delete:hover {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .btn-icon.save-edit {
+      background: #22c55e20;
+      color: #166534;
+    }
+
+    .btn-icon.save-edit:hover {
+      background: #22c55e;
+      color: white;
+    }
+
+    /* edit mode inline */
+    .edit-input {
+      font-size: 0.85rem;
+      padding: 6px 10px;
+      border-radius: 32px;
+      border: 1px solid #cbd5e1;
+      background: white;
+      width: 100px;
+      text-align: center;
+      outline: none;
+      transition: 0.1s;
+    }
+
+    .edit-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px #3b82f620;
+    }
+
+    /* fixed bottom input form */
+    .fixed-input-area {
+      background: white;
+      border-top: 2px solid #e2e8f0;
+      padding: 1.2rem 1.5rem;
+      box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.02);
+    }
+
+    .form-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .input-group {
+      flex: 1;
+      min-width: 110px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .input-group label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #475569;
+    }
+
+    .input-group input, .input-group select {
+      padding: 10px 12px;
+      border-radius: 20px;
+      border: 1px solid #cbd5e1;
+      background: #fefefe;
+      font-size: 0.85rem;
+      transition: 0.2s;
+      outline: none;
+    }
+
+    .input-group input:focus, .input-group select:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px #bfdbfe;
+    }
+
+    .btn-primary {
+      background: #0f172a;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 40px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background: #1e293b;
+      transform: translateY(-1px);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #64748b;
+      background: #f1f5f9;
+      border-radius: 1.5rem;
+      font-weight: 500;
+    }
+
+    /* scrollbar */
+    .product-list-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .product-list-container::-webkit-scrollbar-track {
+      background: #e2e8f0;
+      border-radius: 10px;
+    }
+
+    .product-list-container::-webkit-scrollbar-thumb {
+      background: #94a3b8;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 780px) {
+      .product-info {
+        flex-direction: column;
+        gap: 8px;
+      }
+      .form-grid {
+        flex-direction: column;
+      }
+      .btn-primary {
+        width: 100%;
+        justify-content: center;
+      }
+      .product-card {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .product-actions {
+        justify-content: flex-end;
+      }
+      .info-field {
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="shop-app">
+  <div class="app-header">
+    <h1>ProductFlow</h1>
+    <div class="sub">Smart inventory · instant add / edit / delete · local save</div>
+  </div>
+
+  <!-- product list area (scrollable, top shows items) -->
+  <div class="product-list-container" id="productListContainer">
+    <div id="productsGrid" class="products-grid">
+      <!-- dynamic product cards injected here -->
+      <div class="empty-state">✨ No products yet. Add your first product below ✨</div>
+    </div>
+  </div>
+
+  <!-- fixed bottom input box -->
+  <div class="fixed-input-area">
+    <div class="form-grid">
+      <div class="input-group">
+        <label>📇 Product Code</label>
+        <input type="text" id="productCode" placeholder="e.g., MB001" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>🏷️ Name</label>
+        <input type="text" id="productName" placeholder="Product name" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>📂 Category</label>
+        <input type="text" id="productCategory" placeholder="Electronics, Food..." autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>📦 Unit</label>
+        <input type="text" id="productUnit" placeholder="pcs, kg, liter" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>💰 Retail Price</label>
+        <input type="number" id="productRetail" placeholder="0.00" step="0.01">
+      </div>
+      <div class="input-group">
+        <label>🏷️ Wholesale Price</label>
+        <input type="number" id="productWholesale" placeholder="0.00" step="0.01">
+      </div>
+      <div class="input-group">
+        <button id="addProductBtn" class="btn-primary">➕ Add Product</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- storage key ----------
+  const STORAGE_KEY = "shop_products_db";
+
+  // ---------- global products array ----------
+  let products = [];
+
+  // ---------- helper: load from localStorage ----------
+  function loadProducts() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        products = JSON.parse(stored);
+      } catch(e) { products = []; }
+    } else {
+      // optional demo seed data (beautiful showcase)
+      products = [
+        { id: "p1", code: "MBP14", name: "MacBook Pro 14", category: "Electronics", unit: "unit", retailPrice: 1999.99, wholesalePrice: 1799.00 },
+        { id: "p2", code: "KB101", name: "Mechanical Keyboard", category: "Accessories", unit: "pcs", retailPrice: 89.99, wholesalePrice: 69.50 },
+        { id: "p3", code: "ORGCOF", name: "Organic Coffee", category: "Beverages", unit: "500g", retailPrice: 14.99, wholesalePrice: 11.25 },
+      ];
+      saveToLocal();
+    }
+  }
+
+  // save to local storage
+  function saveToLocal() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+  }
+
+  // generate simple unique ID
+  function generateId() {
+    return Date.now() + '-' + Math.random().toString(36).substring(2, 8);
+  }
+
+  // ---------- RENDER product list (beautiful card list) ----------
+  let currentlyEditingId = null;   // track which product is in edit mode
+
+  function renderProducts() {
+    const container = document.getElementById('productsGrid');
+    if (!products.length) {
+      container.innerHTML = `<div class="empty-state">🌟 Stock is empty — start adding products below 🌟</div>`;
+      return;
+    }
+
+    let html = '';
+    for (let product of products) {
+      const isEditing = (currentlyEditingId === product.id);
+      if (isEditing) {
+        // ---- EDIT MODE ROW with inline inputs ----
+        html += `
+          <div class="product-card" data-id="${product.id}">
+            <div class="product-info" style="flex-wrap: wrap; gap: 10px;">
+              <div class="info-field"><strong>Code:</strong> <input type="text" id="edit_code_${product.id}" value="${escapeHtml(product.code)}" class="edit-input" style="width:110px"></div>
+              <div class="info-field"><strong>Name:</strong> <input type="text" id="edit_name_${product.id}" value="${escapeHtml(product.name)}" class="edit-input" style="width:130px"></div>
+              <div class="info-field"><strong>Category:</strong> <input type="text" id="edit_category_${product.id}" value="${escapeHtml(product.category)}" class="edit-input" style="width:110px"></div>
+              <div class="info-field"><strong>Unit:</strong> <input type="text" id="edit_unit_${product.id}" value="${escapeHtml(product.unit)}" class="edit-input" style="width:80px"></div>
+              <div class="info-field"><strong>Retail:</strong> <input type="number" step="0.01" id="edit_retail_${product.id}" value="${product.retailPrice}" class="edit-input" style="width:100px"></div>
+              <div class="info-field"><strong>Wholesale:</strong> <input type="number" step="0.01" id="edit_wholesale_${product.id}" value="${product.wholesalePrice}" class="edit-input" style="width:100px"></div>
+            </div>
+            <div class="product-actions">
+              <button class="btn-icon save-edit" data-id="${product.id}" data-action="saveEdit">💾 Save</button>
+              <button class="btn-icon" data-id="${product.id}" data-action="cancelEdit">✖ Cancel</button>
+            </div>
+          </div>
+        `;
+      } else {
+        // ---- DISPLAY MODE (normal view) ----
+        html += `
+          <div class="product-card" data-id="${product.id}">
+            <div class="product-info">
+              <div class="info-field product-code"><strong>Code:</strong> <span>${escapeHtml(product.code)}</span></div>
+              <div class="info-field"><strong>Name:</strong> <span>${escapeHtml(product.name)}</span></div>
+              <div class="info-field"><strong>Category:</strong> <span>${escapeHtml(product.category)}</span></div>
+              <div class="info-field"><strong>Unit:</strong> <span>${escapeHtml(product.unit)}</span></div>
+              <div class="info-field price-tag"><strong>Retail:</strong> <span>$${product.retailPrice.toFixed(2)}</span></div>
+              <div class="info-field price-tag"><strong>Wholesale:</strong> <span>$${product.wholesalePrice.toFixed(2)}</span></div>
+            </div>
+            <div class="product-actions">
+              <button class="btn-icon edit" data-id="${product.id}" data-action="edit">✏️ Edit</button>
+              <button class="btn-icon delete" data-id="${product.id}" data-action="delete">🗑 Delete</button>
+            </div>
+          </div>
+        `;
+      }
+    }
+    container.innerHTML = html;
+  }
+
+  // Helper escapeHtml to avoid injection
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+      return c;
+    });
+  }
+
+  // ---------- CRUD operations ----------
+  function addNewProduct() {
+    const codeInput = document.getElementById('productCode');
+    const nameInput = document.getElementById('productName');
+    const categoryInput = document.getElementById('productCategory');
+    const unitInput = document.getElementById('productUnit');
+    const retailInput = document.getElementById('productRetail');
+    const wholesaleInput = document.getElementById('productWholesale');
+
+    let code = codeInput.value.trim();
+    let name = nameInput.value.trim();
+    let category = categoryInput.value.trim();
+    let unit = unitInput.value.trim();
+    let retail = parseFloat(retailInput.value);
+    let wholesale = parseFloat(wholesaleInput.value);
+
+    // validation
+    if (!code) { alert("❌ Product Code is required"); return; }
+    if (!name) { alert("❌ Product Name is required"); return; }
+    if (!category) category = "General";
+    if (!unit) unit = "pcs";
+    if (isNaN(retail) || retail < 0) retail = 0.00;
+    if (isNaN(wholesale) || wholesale < 0) wholesale = 0.00;
+
+    // check duplicate code (optional but UX friendly)
+    const existing = products.find(p => p.code.toLowerCase() === code.toLowerCase());
+    if (existing) {
+      alert(`⚠️ Product with code "${code}" already exists. Use unique code.`);
+      return;
+    }
+
+    const newProduct = {
+      id: generateId(),
+      code: code,
+      name: name,
+      category: category,
+      unit: unit,
+      retailPrice: retail,
+      wholesalePrice: wholesale,
+    };
+    products.push(newProduct);
+    saveToLocal();
+    clearAddForm();
+    // if any edit mode open, close it
+    currentlyEditingId = null;
+    renderProducts();
+    scrollToBottomAfterAdd();
+  }
+
+  function clearAddForm() {
+    document.getElementById('productCode').value = '';
+    document.getElementById('productName').value = '';
+    document.getElementById('productCategory').value = '';
+    document.getElementById('productUnit').value = '';
+    document.getElementById('productRetail').value = '';
+    document.getElementById('productWholesale').value = '';
+    document.getElementById('productCode').focus();
+  }
+
+  function deleteProductById(productId) {
+    if (confirm("⚠️ Remove product permanently?")) {
+      products = products.filter(p => p.id !== productId);
+      if (currentlyEditingId === productId) currentlyEditingId = null;
+      saveToLocal();
+      renderProducts();
+    }
+  }
+
+  // trigger edit mode (cancel any other edit)
+  function startEditProduct(productId) {
+    if (currentlyEditingId === productId) return;
+    currentlyEditingId = productId;
+    renderProducts();
+  }
+
+  function cancelEdit() {
+    currentlyEditingId = null;
+    renderProducts();
+  }
+
+  function saveEditedProduct(productId) {
+    // fetch values from edit inputs
+    const editedCode = document.getElementById(`edit_code_${productId}`)?.value.trim();
+    const editedName = document.getElementById(`edit_name_${productId}`)?.value.trim();
+    const editedCategory = document.getElementById(`edit_category_${productId}`)?.value.trim();
+    const editedUnit = document.getElementById(`edit_unit_${productId}`)?.value.trim();
+    let editedRetail = parseFloat(document.getElementById(`edit_retail_${productId}`)?.value);
+    let editedWholesale = parseFloat(document.getElementById(`edit_wholesale_${productId}`)?.value);
+
+    if (!editedCode) { alert("Code cannot be empty"); return; }
+    if (!editedName) { alert("Name cannot be empty"); return; }
+    if (isNaN(editedRetail)) editedRetail = 0;
+    if (isNaN(editedWholesale)) editedWholesale = 0;
+
+    // check code uniqueness (exclude current product)
+    const duplicate = products.find(p => p.id !== productId && p.code.toLowerCase() === editedCode.toLowerCase());
+    if (duplicate) {
+      alert(`Code "${editedCode}" already used by another product. Please choose unique code.`);
+      return;
+    }
+
+    const productIndex = products.findIndex(p => p.id === productId);
+    if (productIndex !== -1) {
+      products[productIndex] = {
+        ...products[productIndex],
+        code: editedCode,
+        name: editedName,
+        category: editedCategory || "General",
+        unit: editedUnit || "pcs",
+        retailPrice: editedRetail,
+        wholesalePrice: editedWholesale,
+      };
+      saveToLocal();
+      currentlyEditingId = null;
+      renderProducts();
+    } else {
+      currentlyEditingId = null;
+      renderProducts();
+    }
+  }
+
+  // global event delegation for all dynamic buttons (edit, delete, save, cancel)
+  function handleProductActions(e) {
+    const target = e.target;
+    const button = target.closest('button');
+    if (!button) return;
+    const action = button.getAttribute('data-action');
+    const productId = button.getAttribute('data-id');
+    
+    if (action === 'edit' && productId) {
+      e.preventDefault();
+      startEditProduct(productId);
+    }
+    else if (action === 'delete' && productId) {
+      e.preventDefault();
+      deleteProductById(productId);
+    }
+    else if (action === 'saveEdit' && productId) {
+      e.preventDefault();
+      saveEditedProduct(productId);
+    }
+    else if (action === 'cancelEdit') {
+      e.preventDefault();
+      cancelEdit();
+    }
+  }
+
+  // auto scroll after adding to show new item at top? we scroll little but keep experience: new item appears, list scroll shows bottom?
+  // But best UI: after add product, scroll to the top of product list to show new item (since list is top display)
+  function scrollToBottomAfterAdd() {
+    // actually new product appears at end of array (push), but we want user see it easily – we scroll to bottom of container
+    const container = document.getElementById('productListContainer');
+    setTimeout(() => {
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, 50);
+  }
+
+  // initial load and attach listeners
+  document.addEventListener('DOMContentLoaded', () => {
+    loadProducts();
+    renderProducts();
+
+    // add product button
+    const addBtn = document.getElementById('addProductBtn');
+    addBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      addNewProduct();
+    });
+
+    // allow pressing Enter in any field of bottom form?
+    const inputs = ['productCode','productName','productCategory','productUnit','productRetail','productWholesale'];
+    inputs.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addNewProduct();
+          }
+        });
+      }
+    });
+
+    // event delegation for product actions (edit/delete/save/cancel)
+    const productsGrid = document.getElementById('productsGrid');
+    productsGrid.addEventListener('click', handleProductActions);
+  });
+</script>
+</body>
+</html>
