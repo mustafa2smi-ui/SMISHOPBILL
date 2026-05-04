@@ -1,3 +1,4 @@
+<!--
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -328,15 +329,15 @@
     <div class="sub">Smart inventory · instant add / edit / delete · local save</div>
   </div>
 
-  <!-- product list area (scrollable, top shows items) -->
+  <!-- product list area (scrollable, top shows items) --
   <div class="product-list-container" id="productListContainer">
     <div id="productsGrid" class="products-grid">
-      <!-- dynamic product cards injected here -->
+      <!-- dynamic product cards injected here --
       <div class="empty-state">✨ No products yet. Add your first product below ✨</div>
     </div>
   </div>
 
-  <!-- fixed bottom input box -->
+  <!-- fixed bottom input box --
   <div class="fixed-input-area">
     <div class="form-grid">
       <div class="input-group">
@@ -662,5 +663,138 @@
     productsGrid.addEventListener('click', handleProductActions);
   });
 </script>
+</body>
+</html>
+-->
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Master</title>
+    <style>
+        :root { --p-color: #2563eb; --bg: #f3f4f6; }
+        body { font-family: sans-serif; margin: 0; background: var(--bg); padding-top: 220px; }
+        
+        /* Fixed Entry Panel */
+        #entry-panel {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: white; padding: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100; display: grid;
+            grid-template-columns: 1fr 1fr; gap: 8px;
+        }
+        input, select { 
+            padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; 
+        }
+        .full-width { grid-column: span 2; }
+        .btn-group { grid-column: span 2; display: flex; gap: 10px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 6px; font-weight: bold; color: white; }
+        .add-btn { background: #059669; }
+        .del-btn { background: #dc2626; opacity: 0.5; }
+
+        /* Filter Tabs */
+        .filters { 
+            position: sticky; top: 215px; background: var(--bg);
+            padding: 10px; display: flex; gap: 5px; z-index: 90;
+        }
+        .filter-btn { background: white; color: #333; border: 1px solid #ccc; flex: 1; padding: 8px; border-radius: 20px; }
+        .filter-btn.active { background: var(--p-color); color: white; border: none; }
+
+        /* List Style */
+        #price-list { padding: 10px; }
+        .item-card {
+            background: white; padding: 15px; border-radius: 12px;
+            margin-bottom: 10px; display: flex; justify-content: space-between;
+            align-items: center; border-left: 5px solid var(--p-color);
+        }
+        .item-info b { font-size: 20px; display: block; color: #111; }
+        .item-info span { font-size: 14px; color: #666; }
+        .item-price { text-align: right; }
+        .price-val { font-size: 22px; font-weight: 800; color: #059669; }
+    </style>
+</head>
+<body>
+
+<div id="entry-panel">
+    <input type="text" id="code" placeholder="Code">
+    <input type="text" id="itemName" placeholder="Item Name">
+    <select id="category">
+        <option value="General">Category</option>
+        <option value="Veg">Veg</option>
+        <option value="Grocery">Grocery</option>
+    </select>
+    <input type="text" id="unit" placeholder="Unit (kg/pcs)">
+    <input type="number" id="retailPrice" placeholder="Retail ₹">
+    <input type="number" id="wholesalePrice" placeholder="Wholesale ₹">
+    <div class="btn-group">
+        <button class="add-btn" onclick="addItem()">+ Add Item</button>
+        <button class="del-btn" id="updateBtn" disabled>Update/Delete</button>
+    </div>
+</div>
+
+<div class="filters">
+    <button class="filter-btn active" onclick="filterList('all')">All</button>
+    <button class="filter-btn" onclick="filterList('retail')">Retail</button>
+    <button class="filter-btn" onclick="filterList('wholesale')">Wholesale</button>
+</div>
+
+<div id="price-list">
+    </div>
+
+<script>
+    let items = JSON.parse(localStorage.getItem('myPrices')) || [];
+
+    function addItem() {
+        const item = {
+            id: Date.now(),
+            code: document.getElementById('code').value,
+            name: document.getElementById('itemName').value,
+            unit: document.getElementById('unit').value,
+            rp: document.getElementById('retailPrice').value,
+            wp: document.getElementById('wholesalePrice').value
+        };
+        if(!item.name || !item.rp) return alert("Pehle Name aur Price bhariye!");
+        items.push(item);
+        saveAndRender();
+        clearInputs();
+    }
+
+    function saveAndRender(filter = 'all') {
+        localStorage.setItem('myPrices', JSON.stringify(items));
+        const listDiv = document.getElementById('price-list');
+        listDiv.innerHTML = '';
+
+        items.forEach(item => {
+            let priceShow = filter === 'wholesale' ? item.wp : item.rp;
+            if(filter === 'all') priceShow = `R:${item.rp} | W:${item.wp}`;
+
+            listDiv.innerHTML += `
+                <div class="item-card">
+                    <div class="item-info">
+                        <b>${item.name}</b>
+                        <span>Code: ${item.code} | Unit: ${item.unit}</span>
+                    </div>
+                    <div class="item-price">
+                        <div class="price-val">₹${priceShow}</div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function clearInputs() {
+        document.querySelectorAll('input').forEach(i => i.value = '');
+    }
+
+    function filterList(type) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        saveAndRender(type);
+    }
+
+    saveAndRender();
+</script>
+
 </body>
 </html>
