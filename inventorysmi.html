@@ -805,7 +805,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Price Master v2</title>
+    <title>Pro Price Master v3</title>
     <style>
         :root { --p-color: #2563eb; --bg: #f3f4f6; --accent: #059669; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); }
@@ -814,61 +814,63 @@
         #header-sticky {
             position: fixed; top: 0; left: 0; right: 0;
             background: white; z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            padding: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            padding: 10px 12px;
         }
 
         #shop-name { 
-            border: none; border-bottom: 2px solid #eee; font-weight: bold; 
-            font-size: 20px; text-align: center; color: var(--p-color); width: 100%; outline: none; margin-bottom: 10px;
+            border: none; border-bottom: 2px solid #ddd; font-weight: bold; 
+            font-size: 18px; text-align: center; color: var(--p-color); width: 100%; outline: none; margin-bottom: 8px;
         }
 
-        #entry-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+        #entry-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        input { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; outline: none; }
         
-        .btn-group { grid-column: span 2; display: flex; gap: 8px; margin-top: 5px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; color: white; cursor: pointer; }
+        .btn-group { grid-column: span 2; display: flex; gap: 5px; margin-top: 5px; }
+        button { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: bold; color: white; cursor: pointer; font-size: 13px; }
         .add-btn { background: var(--accent); }
         .update-btn { background: #f59e0b; display: none; }
         .del-btn { background: #dc2626; display: none; }
 
         /* Search & Filter Section */
-        .controls { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
-        #search-input { padding: 12px; border: 2px solid var(--p-color); border-radius: 8px; font-weight: bold; }
+        .controls { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+        #search-input { padding: 10px; border: 2px solid var(--p-color); border-radius: 6px; font-weight: bold; }
         
-        .filter-tabs { display: flex; gap: 5px; }
-        .tab { flex: 1; padding: 8px; background: #eee; border-radius: 20px; text-align: center; font-size: 12px; font-weight: bold; cursor: pointer; border: 1px solid #ddd; }
+        .filter-tabs { display: flex; gap: 4px; }
+        .tab { flex: 1; padding: 6px; background: #eee; border-radius: 15px; text-align: center; font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid #ddd; }
         .tab.active { background: var(--p-color); color: white; border: none; }
 
-        /* Scrollable List Area */
+        /* Scrollable List Area - Margin Fixed Here */
         #main-content { 
-            margin-top: 360px; /* Header ki height ke hisab se space */
-            padding: 10px;
+            padding-top: 340px; /* Isse pehla item sahi jagah dikhega */
+            padding-left: 10px;
+            padding-right: 10px;
+            padding-bottom: 20px;
         }
 
         .item-card {
-            background: white; padding: 15px; border-radius: 15px;
-            margin-bottom: 12px; display: flex; justify-content: space-between;
-            align-items: center; border-left: 8px solid var(--p-color);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            background: white; padding: 12px; border-radius: 12px;
+            margin-bottom: 8px; display: flex; justify-content: space-between;
+            align-items: center; border-left: 6px solid var(--p-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .item-info b { font-size: 22px; color: #111; display: block; line-height: 1.2; }
-        .item-info span { font-size: 13px; color: #666; }
-        .price-display { text-align: right; }
-        .main-price { font-size: 26px; font-weight: 900; color: var(--accent); }
-        .sub-price { font-size: 12px; color: #777; }
+        .item-info b { font-size: 19px; color: #111; display: block; line-height: 1.1; }
+        .item-info span { font-size: 12px; color: #666; }
+        .price-display { text-align: right; min-width: 80px; }
+        .main-price { font-size: 22px; font-weight: 900; color: var(--accent); }
+        .sub-price { font-size: 11px; color: #777; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="header-sticky">
-    <input type="text" id="shop-name" placeholder="Dukan Ka Naam" oninput="saveShopName()">
+    <input type="text" id="shop-name" placeholder="Apni Dukan Ka Naam" oninput="saveShopName()">
 
     <div id="entry-panel">
         <input type="hidden" id="edit-id">
         <input type="text" id="code" placeholder="Code">
         <input type="text" id="itemName" placeholder="Item Name">
-        <input type="text" id="extraName" placeholder="Extra (Naya/Purana)">
+        <input type="text" id="extraName" placeholder="Extra (e.g. Fresh)">
         <input type="text" id="category" placeholder="Category">
         <input type="text" id="unit" placeholder="Unit (kg/pc)">
         <input type="number" id="retailPrice" placeholder="Retail ₹">
@@ -882,17 +884,18 @@
     </div>
 
     <div class="controls">
-        <input type="text" id="search-input" placeholder="🔍 Search item..." oninput="renderList()">
+        <input type="text" id="search-input" placeholder="🔍 Search item name..." oninput="renderList()">
         <div class="filter-tabs">
-            <div class="tab active" id="tab-all" onclick="setFilter('all')">All</div>
-            <div class="tab" id="tab-retail" onclick="setFilter('retail')">Retail</div>
-            <div class="tab" id="tab-wholesale" onclick="setFilter('wholesale')">Wholesale</div>
+            <div class="tab active" id="tab-all" onclick="setFilter('all')">All Prices</div>
+            <div class="tab" id="tab-retail" onclick="setFilter('retail')">Retail Only</div>
+            <div class="tab" id="tab-wholesale" onclick="setFilter('wholesale')">Wholesale Only</div>
         </div>
     </div>
 </div>
 
 <div id="main-content">
-    <div id="price-list"></div>
+    <div id="price-list">
+        </div>
 </div>
 
 <script>
@@ -923,8 +926,8 @@
             rp: document.getElementById('retailPrice').value,
             wp: document.getElementById('wholesalePrice').value
         };
-        if(!item.name) return alert("Please enter name");
-        items.push(item);
+        if(!item.name) return alert("Item Name likhna zaruri hai!");
+        items.unshift(item); // Naya item sabse upar dikhega
         saveAndReset();
     }
 
@@ -933,7 +936,14 @@
         const search = document.getElementById('search-input').value.toLowerCase();
         listDiv.innerHTML = '';
 
-        items.filter(i => i.name.toLowerCase().includes(search)).forEach(item => {
+        const filtered = items.filter(i => i.name.toLowerCase().includes(search));
+        
+        if(filtered.length === 0) {
+            listDiv.innerHTML = '<p style="text-align:center; color:#999; margin-top:20px;">Koi item nahi mila.</p>';
+            return;
+        }
+
+        filtered.forEach(item => {
             let displayPrice = "";
             let subText = "";
 
@@ -942,16 +952,16 @@
                 subText = `W: ₹${item.wp}`;
             } else if(currentFilter === 'retail') {
                 displayPrice = `₹${item.rp}`;
-                subText = "Retail Price";
+                subText = "RETAIL";
             } else {
                 displayPrice = `₹${item.wp}`;
-                subText = "Wholesale Price";
+                subText = "WHOLESALE";
             }
 
             listDiv.innerHTML += `
                 <div class="item-card" onclick="editMode(${item.id})">
                     <div class="item-info">
-                        <b>${item.name} <small style="font-weight:normal; color:#666">(${item.extra || ''})</small></b>
+                        <b>${item.name} <small style="font-weight:normal; color:#666; font-size:14px;">(${item.extra || ''})</small></b>
                         <span>${item.cat} | ${item.unit} | Code: ${item.code}</span>
                     </div>
                     <div class="price-display">
@@ -995,7 +1005,7 @@
     }
 
     function deleteItem() {
-        if(confirm("Pakka delete karein?")) {
+        if(confirm("Kya aap is item ko delete karna chahte hain?")) {
             items = items.filter(i => i.id !== Number(document.getElementById('edit-id').value));
             saveAndReset();
         }
