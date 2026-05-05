@@ -666,6 +666,7 @@
 </body>
 </html>
 -->
+<!--
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -794,6 +795,195 @@
     }
 
     saveAndRender();
+</script>
+
+</body>
+</html>
+-->
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Price Master</title>
+    <style>
+        :root { --p-color: #2563eb; --bg: #f3f4f6; --accent: #059669; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); padding-top: 290px; }
+        
+        /* Sticky Header */
+        #header-sticky {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: white; z-index: 100; box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            padding: 10px;
+        }
+
+        /* Shop Name Box */
+        #shop-name-container { text-align: center; margin-bottom: 8px; }
+        #shop-name { 
+            border: none; border-bottom: 2px dashed #ccc; font-weight: bold; 
+            font-size: 18px; text-align: center; color: var(--p-color); width: 80%; outline: none;
+        }
+
+        /* Input Grid */
+        #entry-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        input { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--p-color); box-shadow: 0 0 5px rgba(37,99,235,0.2); }
+        
+        .btn-group { grid-column: span 2; display: flex; gap: 8px; margin-top: 5px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; color: white; cursor: pointer; }
+        .add-btn { background: var(--accent); }
+        .update-btn { background: #f59e0b; display: none; }
+        .del-btn { background: #dc2626; display: none; }
+
+        /* Search Box */
+        #search-container { margin-top: 10px; }
+        #search-input { width: 93%; background: #fff; border: 2px solid #2563eb; font-weight: bold; }
+
+        /* List Items */
+        #price-list { padding: 10px; }
+        .item-card {
+            background: white; padding: 15px; border-radius: 12px;
+            margin-bottom: 10px; display: flex; justify-content: space-between;
+            align-items: center; border-left: 6px solid var(--p-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .item-info b { font-size: 22px; color: #000; display: block; }
+        .item-info span { font-size: 13px; color: #666; font-weight: 500; }
+        .price-val { font-size: 24px; font-weight: 900; color: var(--accent); text-align: right; }
+        
+        .active-edit { border: 2px solid var(--p-color) !important; background: #eff6ff !important; }
+    </style>
+</head>
+<body>
+
+<div id="header-sticky">
+    <div id="shop-name-container">
+        <input type="text" id="shop-name" placeholder="Apni Dukan Ka Naam Likhein" oninput="saveShopName()">
+    </div>
+
+    <div id="entry-panel">
+        <input type="hidden" id="edit-id">
+        <input type="text" id="code" placeholder="Code">
+        <input type="text" id="itemName" placeholder="Item Name">
+        <input type="text" id="extraName" placeholder="Extra Info (e.g. Red/Fresh)">
+        <input type="text" id="category" placeholder="Category">
+        <input type="text" id="unit" placeholder="Unit (kg/pkt)">
+        <input type="number" id="retailPrice" placeholder="Retail ₹">
+        <input type="number" id="wholesalePrice" placeholder="Wholesale ₹" style="grid-column: span 2;">
+        
+        <div class="btn-group">
+            <button id="addBtn" class="add-btn" onclick="addItem()">+ Save Item</button>
+            <button id="updateBtn" class="update-btn" onclick="updateItem()">Update</button>
+            <button id="delBtn" class="del-btn" onclick="deleteItem()">Delete</button>
+        </div>
+    </div>
+
+    <div id="search-container">
+        <input type="text" id="search-input" placeholder="🔍 Search Item Name..." oninput="renderList()">
+    </div>
+</div>
+
+<div id="price-list"></div>
+
+<script>
+    let items = JSON.parse(localStorage.getItem('myPrices')) || [];
+    
+    // Load Shop Name
+    document.getElementById('shop-name').value = localStorage.getItem('myShopName') || '';
+
+    function saveShopName() {
+        localStorage.setItem('myShopName', document.getElementById('shop-name').value);
+    }
+
+    function addItem() {
+        const item = {
+            id: Date.now(),
+            code: document.getElementById('code').value,
+            name: document.getElementById('itemName').value,
+            extra: document.getElementById('extraName').value,
+            cat: document.getElementById('category').value,
+            unit: document.getElementById('unit').value,
+            rp: document.getElementById('retailPrice').value,
+            wp: document.getElementById('wholesalePrice').value
+        };
+        if(!item.name) return alert("Kam se kam Name likhiye");
+        items.push(item);
+        saveAndReset();
+    }
+
+    function renderList() {
+        const listDiv = document.getElementById('price-list');
+        const searchTerm = document.getElementById('search-input').value.toLowerCase();
+        listDiv.innerHTML = '';
+
+        items.filter(i => i.name.toLowerCase().includes(searchTerm)).forEach(item => {
+            listDiv.innerHTML += `
+                <div class="item-card" onclick="editMode(${item.id})">
+                    <div class="item-info">
+                        <b>${item.name} <small style="color:#666">(${item.extra || ''})</small></b>
+                        <span>${item.cat} | ${item.unit} | Code: ${item.code}</span>
+                    </div>
+                    <div class="price-val">₹${item.rp}<br><small style="font-size:12px; color:#666">W: ₹${item.wp}</small></div>
+                </div>
+            `;
+        });
+    }
+
+    function editMode(id) {
+        const item = items.find(i => i.id === id);
+        document.getElementById('edit-id').value = item.id;
+        document.getElementById('code').value = item.code;
+        document.getElementById('itemName').value = item.name;
+        document.getElementById('extraName').value = item.extra;
+        document.getElementById('category').value = item.cat;
+        document.getElementById('unit').value = item.unit;
+        document.getElementById('retailPrice').value = item.rp;
+        document.getElementById('wholesalePrice').value = item.wp;
+
+        // Button Toggle
+        document.getElementById('addBtn').style.display = 'none';
+        document.getElementById('updateBtn').style.display = 'block';
+        document.getElementById('delBtn').style.display = 'block';
+        window.scrollTo(0,0);
+    }
+
+    function updateItem() {
+        const id = Number(document.getElementById('edit-id').value);
+        items = items.map(i => i.id === id ? {
+            ...i,
+            code: document.getElementById('code').value,
+            name: document.getElementById('itemName').value,
+            extra: document.getElementById('extraName').value,
+            cat: document.getElementById('category').value,
+            unit: document.getElementById('unit').value,
+            rp: document.getElementById('retailPrice').value,
+            wp: document.getElementById('wholesalePrice').value
+        } : i);
+        saveAndReset();
+    }
+
+    function deleteItem() {
+        if(confirm("Delete karna hai?")){
+            const id = Number(document.getElementById('edit-id').value);
+            items = items.filter(i => i.id !== id);
+            saveAndReset();
+        }
+    }
+
+    function saveAndReset() {
+        localStorage.setItem('myPrices', JSON.stringify(items));
+        renderList();
+        clearInputs();
+        document.getElementById('addBtn').style.display = 'block';
+        document.getElementById('updateBtn').style.display = 'none';
+        document.getElementById('delBtn').style.display = 'none';
+    }
+
+    function clearInputs() {
+        document.querySelectorAll('#entry-panel input').forEach(i => i.value = '');
+    }
+
+    renderList();
 </script>
 
 </body>
